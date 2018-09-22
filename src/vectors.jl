@@ -1,3 +1,9 @@
+struct Vec{T<:Number} <: AbstractVec{T}
+    x::T
+    y::T
+    z::T
+end
+
 @inline Base.@propagate_inbounds Base.getindex(a::AbstractVec,I::Integer) = getfield(a,I)
 Base.IndexStyle(a::Type{<:AbstractVec}) = Base.IndexLinear()
 
@@ -5,10 +11,9 @@ Base.IndexStyle(a::Type{<:AbstractVec}) = Base.IndexLinear()
 @inline ypos(a::AbstractVec) = a.y
 @inline zpos(a::AbstractVec) = a.z
 
-#pos of a node returns a tuple with the positions
-pos(a::AbstractVec) = (xpos(a),ypos(a),zpos(a))
+LinearAlgebra.norm(a::Vec{<:Real}) = @fastmath sqrt(muladd(xpos(a), xpos(a), muladd(ypos(a), ypos(a), zpos(a)^2)))
+LinearAlgebra.norm(a::Vec) = @fastmath sqrt(abs2(a.x)+abs2(a.y)+abs2(a.z))
 
-LinearAlgebra.norm(a::AbstractVec) = @fastmath sqrt(muladd(xpos(a), xpos(a), muladd(ypos(a), ypos(a), zpos(a)^2)))
 distance(a::AbstractVec,b::AbstractVec) = @fastmath sqrt((xpos(b)-xpos(a))^2 + (ypos(b)-ypos(a))^2 + (zpos(b)-zpos(a))^2)
 
 Base.:+(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)+xpos(b), ypos(a)+ypos(b), zpos(a)+zpos(b))
@@ -21,11 +26,6 @@ LinearAlgebra.dot(a::AbstractVec,b::AbstractVec) = @fastmath muladd(xpos(a), xpo
 
 LinearAlgebra.cross(a::AbstractVec,b::AbstractVec) = @fastmath Vec(ypos(a)*zpos(b) - zpos(a)*ypos(b), zpos(a)*xpos(b) - xpos(a)*zpos(b), xpos(a)*ypos(b) - ypos(a)*xpos(b))
 
-struct Vec{T<:Number} <: AbstractVec{T}
-    x::T
-    y::T
-    z::T
-end
 
 Base.size(a::Vec) = (3,)
 Base.length(a::Vec) = 3

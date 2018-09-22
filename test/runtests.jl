@@ -11,6 +11,7 @@ using LinearAlgebra
     @test b-a == Vec(3.,3.,3.)
     @test a⋅b ≈ 32.
     @test norm(a) ≈ 3.7416573867739413
+    @test norm(im*a) ≈ 3.7416573867739413
     @test 2*a == Vec(2.,4.,6.)
     @test a/2 == Vec(0.5,1.,1.5)
     @test cross(a,b) == Vec(-3.,6.,-3.)
