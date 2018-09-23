@@ -44,3 +44,10 @@ end
     @test Lie(A,a) ==  A*W - W*A
     @test symouter(a,b) == SymTen(4.,6.5,9.,10.,13.5,18.)
 end
+
+@testset "UniformScaling" begin
+    A = SymTen(1,1,1,1,1,1)
+    @test A - I === SymTen(0,1,1,0,1,0)
+    @test A + I === SymTen(2,1,1,2,1,2)
+    @test I - A === SymTen(0,-1,-1,0,-1,0)
+end
