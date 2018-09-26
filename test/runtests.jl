@@ -31,6 +31,9 @@ end
     @test tr(A) == 11.
     @test A:B == tr(A*B)
     @test norm(A) == sqrt(2*tr(A*A))
+    @test traceless(SymTen(1.,2.,3.,1.,5.,1.)) == [0. 2. 3.;
+                                                   2. 0. 5.;
+                                                   3. 5. 0.]
 end
 
 @testset "Tensor x Vector operation" begin

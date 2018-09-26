@@ -96,3 +96,6 @@ SymTen(q,w,e,r,t,y) =
                      2*(w.z*S.xy - w.x*S.yz),
                      muladd(w.x,S.yy, muladd(w.z,S.xz, -muladd(w.x,S.zz, w.y*S.xy))),
                      2*(w.x*S.yz - w.y*S.xz))
+
+@inline traceless(S::SymTen) =
+    S - inv(3)*LinearAlgebra.tr(S)*LinearAlgebra.I

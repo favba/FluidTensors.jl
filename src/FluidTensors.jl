@@ -2,7 +2,7 @@ module FluidTensors
 
 import LinearAlgebra
 
-export Vec, SymTen, symouter, Lie
+export Vec, SymTen, symouter, Lie, traceless
 
 abstract type AbstractVec{T} <: AbstractArray{T,1} end
 abstract type AbstractTen{T} <: AbstractArray{T,2} end
