@@ -196,6 +196,8 @@ end
 @inline zzvec(v::SymTenArray) =
     v.zz
 
+Base.similar(a::SymTenArray) = SymTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz),similar(a.zz))
+
 abstract type AbstractSymTrTenArray{T,N} <: AbstractArray{SymTen{T},N} end
 
 @inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},i::Int) where {T,N}
@@ -277,3 +279,5 @@ end
     v.yy
 @inline yzvec(v::SymTrTenArray) =
     v.yz
+
+Base.similar(a::SymTrTenArray) = SymTrTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz))

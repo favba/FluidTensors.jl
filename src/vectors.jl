@@ -92,3 +92,5 @@ end
     v.y
 @inline zvec(v::VecArray) =
     v.z
+
+Base.similar(a::VecArray) = VecArray(similar(a.x),similar(a.y),similar(a.z))
