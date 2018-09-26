@@ -99,3 +99,181 @@ SymTen(q,w,e,r,t,y) =
 
 @inline traceless(S::SymTen) =
     S - inv(3)*LinearAlgebra.tr(S)*LinearAlgebra.I
+
+
+
+############################### Array types ########################
+
+
+abstract type AbstractSymTenArray{T,N} <: AbstractArray{SymTen{T},N} end
+
+Base.size(v::AbstractSymTenArray) =
+    size(xxvec(v))
+
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTenArray{T,N},i::Int) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    zz = zzvec(v)
+    xxv = xx[i]
+    xyv = xy[i]
+    xzv = xz[i]
+    yyv = yy[i]
+    yzv = yz[i]
+    zzv = zz[i]
+    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,zzv)
+end
+    
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTenArray{T,N},I::Vararg{Int,N}) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    zz = zzvec(v)
+    xxv = xx[I...]
+    xyv = xy[I...]
+    xzv = xz[I...]
+    yyv = yy[I...]
+    yzv = yz[I...]
+    zzv = zz[I...]
+    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,zzv)
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTenArray,ten,i::Int)
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    zz = zzvec(v)
+    setindex!(xx,ten.xx,i)
+    setindex!(xy,ten.xy,i)
+    setindex!(xz,ten.xz,i)
+    setindex!(yy,ten.yy,i)
+    setindex!(yz,ten.yz,i)
+    setindex!(zz,ten.zz,i)
+    return v
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTenArray{T,N},ten,I::Vararg{Int,N}) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    zz = zzvec(v)
+    setindex!(xx,ten.xx,I...)
+    setindex!(xy,ten.xy,I...)
+    setindex!(xz,ten.xz,I...)
+    setindex!(yy,ten.yy,I...)
+    setindex!(yz,ten.yz,I...)
+    setindex!(zz,ten.zz,I...)
+    return v
+end
+
+struct SymTenArray{T,N,A<:AbstractArray{T,N}} <: AbstractSymTenArray{T,N}
+    xx::A
+    xy::A
+    xz::A
+    yy::A
+    yz::A
+    zz::A
+end
+
+@inline xxvec(v::SymTenArray) =
+    v.xx
+@inline xyvec(v::SymTenArray) =
+    v.xy
+@inline xzvec(v::SymTenArray) =
+    v.xz
+@inline yyvec(v::SymTenArray) =
+    v.yy
+@inline yzvec(v::SymTenArray) =
+    v.yz
+@inline zzvec(v::SymTenArray) =
+    v.zz
+
+abstract type AbstractSymTrTenArray{T,N} <: AbstractArray{SymTen{T},N} end
+
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},i::Int) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    xxv = xx[i]
+    xyv = xy[i]
+    xzv = xz[i]
+    yyv = yy[i]
+    yzv = yz[i]
+    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,-(xxv+yyv))
+end
+    
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},I::Vararg{Int,N}) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    xxv = xx[I...]
+    xyv = xy[I...]
+    xzv = xz[I...]
+    yyv = yy[I...]
+    yzv = yz[I...]
+    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,-(xxv+yyv))
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTrTenArray,ten,i::Int)
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    ten = traceless(ten)
+    setindex!(xx,ten.xx,i)
+    setindex!(xy,ten.xy,i)
+    setindex!(xz,ten.xz,i)
+    setindex!(yy,ten.yy,i)
+    setindex!(yz,ten.yz,i)
+    return v
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTrTenArray{T,N},vec,I::Vararg{Int,N}) where {T,N}
+    xx = xxvec(v)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yy = yyvec(v)
+    yz = yzvec(v)
+    ten = traceless(ten)
+    setindex!(xx,ten.xx,I...)
+    setindex!(xy,ten.xy,I...)
+    setindex!(xz,ten.xz,I...)
+    setindex!(yy,ten.yy,I...)
+    setindex!(yz,ten.yz,I...)
+    return v
+end
+
+Base.size(v::AbstractSymTrTenArray) =
+    size(xxvec(v))
+
+struct SymTrTenArray{T,N,A<:AbstractArray{T,N}} <: AbstractSymTrTenArray{T,N}
+    xx::A
+    xy::A
+    xz::A
+    yy::A
+    yz::A
+end
+    
+@inline xxvec(v::SymTrTenArray) =
+    v.xx
+@inline xyvec(v::SymTrTenArray) =
+    v.xy
+@inline xzvec(v::SymTrTenArray) =
+    v.xz
+@inline yyvec(v::SymTrTenArray) =
+    v.yy
+@inline yzvec(v::SymTrTenArray) =
+    v.yz

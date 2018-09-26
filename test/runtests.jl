@@ -54,3 +54,17 @@ end
     @test A + I === SymTen(2,1,1,2,1,2)
     @test I - A === SymTen(0,-1,-1,0,-1,0)
 end
+
+@testset "VecArrays" begin
+    v = VecArray([1. 2.;3. 4.], [5. 6.; 7. 8.], [9. 10.;-1. -2.])
+    @test eltype(v) === Vec{Float64}
+    @test size(v) == (2,2)
+    @test v[2] === Vec{Float64}(3.,7.,-1.)
+    @test v[1,2] === Vec{Float64}(2., 6., 10.)
+    @test v[2,2] === Vec{Float64}(4., 8., -2.)
+    v[1] = Vec(-1.,-2.,-3.)
+    @test v.x[1] == -1 && v.y[1] == -2 && v.z[1] == -3.
+end
+
+@testset "TenArrays" begin
+end

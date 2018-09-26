@@ -32,3 +32,63 @@ distance(a::AbstractVec,b::AbstractVec) = @fastmath sqrt((xpos(b)-xpos(a))^2 + (
 Base.zero(a::Type{Vec{T}}) where {T} = Vec{T}(zero(T),zero(T),zero(T))
 Vec(x::T,y::T,z::T) where T = Vec{T}(x,y,z)
 Vec(x,y,z) = Vec(promote(x,y,z)...)
+
+
+abstract type AbstractVecArray{T,N} <: AbstractArray{Vec{T},N} end
+
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractVecArray{T,N},i::Int) where {T,N}
+    x = xvec(v)
+    y = yvec(v)
+    z = zvec(v)
+    xv = x[i]
+    yv = y[i]
+    zv = z[i]
+    return Vec{T}(xv,yv,zv)
+end
+
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractVecArray{T,N},I::Vararg{Int,N}) where {T,N}
+    x = xvec(v)
+    y = yvec(v)
+    z = zvec(v)
+    xv = x[I...]
+    yv = y[I...]
+    zv = z[I...]
+    return Vec{T}(xv,yv,zv)
+end
+
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractVecArray,vec,i::Int)
+    x = xvec(v)
+    y = yvec(v)
+    z = zvec(v)
+    setindex!(x,getfield(vec,1),i)
+    setindex!(y,getfield(vec,2),i)
+    setindex!(z,getfield(vec,3),i)
+    return v
+end
+
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractVecArray{T,N},vec,I::Vararg{Int,N}) where {T,N}
+    x = xvec(v)
+    y = yvec(v)
+    z = zvec(v)
+    setindex!(x,getfield(vec,1),I...)
+    setindex!(y,getfield(vec,2),I...)
+    setindex!(z,getfield(vec,3),I...)
+    return v
+end
+
+
+Base.size(v::AbstractVecArray) =
+    size(xvec(v))
+
+struct VecArray{T,N,A<:AbstractArray{T,N}} <: AbstractVecArray{T,N}
+    x::A
+    y::A
+    z::A
+end
+
+@inline xvec(v::VecArray) =
+    v.x
+@inline yvec(v::VecArray) =
+    v.y
+@inline zvec(v::VecArray) =
+    v.z
