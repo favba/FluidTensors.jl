@@ -261,12 +261,12 @@ end
 Base.size(v::AbstractSymTrTenArray) =
     size(xxvec(v))
 
-struct SymTrTenArray{T,N,A<:AbstractArray{T,N}} <: AbstractSymTrTenArray{T,N}
+struct SymTrTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N}} <: AbstractSymTrTenArray{T,N}
     xx::A
-    xy::A
-    xz::A
-    yy::A
-    yz::A
+    xy::B
+    xz::C
+    yy::D
+    yz::E
 end
     
 @inline xxvec(v::SymTrTenArray) =
