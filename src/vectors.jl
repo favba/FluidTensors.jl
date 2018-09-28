@@ -80,11 +80,17 @@ end
 Base.size(v::AbstractVecArray) =
     size(xvec(v))
 
-struct VecArray{T,N,A<:AbstractArray{T,N}} <: AbstractVecArray{T,N}
+struct VecArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N}} <: AbstractVecArray{T,N}
     x::A
-    y::A
-    z::A
+    y::B
+    z::C
+    function VecArray{T,N,A,B,C}(x::A,y::B,z::C) where {T,N,A,B,C}
+        @assert (size(x) == size(y) == size(z))
+        return new{T,N,A,B,C}(x,y,z)
+    end
 end
+
+VecArray(x::AbstractArray{T,N},y::B,z::C) where{T,N,B<:AbstractArray{T,N},C<:AbstractArray{T,N}} = VecArray{T,N,typeof(x),B,C}(x,y,z)
 
 @inline xvec(v::VecArray) =
     v.x
