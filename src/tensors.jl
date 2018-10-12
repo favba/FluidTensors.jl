@@ -249,7 +249,7 @@ end
     xz = xzvec(v)
     yy = yyvec(v)
     yz = yzvec(v)
-    ten = traceless(ten)
+    ten = traceless(vec)
     setindex!(xx,ten.xx,I...)
     setindex!(xy,ten.xy,I...)
     setindex!(xz,ten.xz,I...)
