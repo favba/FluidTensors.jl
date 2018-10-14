@@ -26,6 +26,7 @@ distance(a::AbstractVec,b::AbstractVec) = @fastmath sqrt((xpos(b)-xpos(a))^2 + (
 
 @inline LinearAlgebra.cross(a::AbstractVec,b::AbstractVec) = @fastmath Vec(ypos(a)*zpos(b) - zpos(a)*ypos(b), zpos(a)*xpos(b) - xpos(a)*zpos(b), xpos(a)*ypos(b) - ypos(a)*xpos(b))
 
+anglecos(a::Vec,b::Vec) = LinearAlgebra.dot(a,b)/(LinearAlgebra.norm(a)*LinearAlgebra.norm(b))
 
 @inline Base.size(a::Vec) = (3,)
 @inline Base.length(a::Vec) = 3
