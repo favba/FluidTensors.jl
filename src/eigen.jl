@@ -38,41 +38,41 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
 
     bla = ((e22 - eig[1])*(e33 - eig[1]) - e23*e23)
     if bla != 0
-      eigv11 = oneunit(T)
-      eigv12 = (e23*e13 - (e33-eig[1])*e12)/bla
-      eigv13 = (-e13 -e23*eigv12)/(e33-eig[1])
-      aux = sqrt(1 + eigv12^2 + eigv13^2)
-      eigv11 = 1/aux
-      eigv12 = eigv12/aux
-      eigv13 = eigv13/aux
+        eigv11 = oneunit(T)
+        eigv12 = (e23*e13 - (e33-eig[1])*e12)/bla
+        eigv13 = (-e13 -e23*eigv12)/(e33-eig[1])
+        aux = sqrt(1 + eigv12^2 + eigv13^2)
+        eigv11 = 1/aux
+        eigv12 = eigv12/aux
+        eigv13 = eigv13/aux
     else
-      bla = ((e11 - eig[1])*(e22 - eig[1]) - e12*e12)
-      eigv13 = oneunit(T)
-      eigv11 = (e23*e12 - (e22-eig[1])*e13)/bla
-      eigv12 = (-e23 -e12*eigv11)/(e22-eig[1])
-      aux = sqrt(1 + eigv12^2 + eigv11^2)
-      eigv11 = eigv11/aux
-      eigv12 = eigv12/aux
-      eigv13 = 1/aux
+        bla = ((e11 - eig[1])*(e22 - eig[1]) - e12*e12)
+        eigv13 = oneunit(T)
+        eigv11 = (e23*e12 - (e22-eig[1])*e13)/bla
+        eigv12 = (-e23 -e12*eigv11)/(e22-eig[1])
+        aux = sqrt(1 + eigv12^2 + eigv11^2)
+        eigv11 = eigv11/aux
+        eigv12 = eigv12/aux
+        eigv13 = 1/aux
     end
     bla = ((e22 - eig[2])*(e33 - eig[2]) - e23*e23)
     if bla != 0
-      eigv21 = oneunit(T)
-      eigv22 = (e23*e13 - (e33-eig[2])*e12)/bla
-      eigv23 = (-e13 -e23*eigv22)/(e33-eig[2])
-      aux = sqrt(1 + eigv22^2 + eigv23^2)
-      eigv21 = 1/aux
-      eigv22 = eigv22/aux
-      eigv23 = eigv23/aux
+        eigv21 = oneunit(T)
+        eigv22 = (e23*e13 - (e33-eig[2])*e12)/bla
+        eigv23 = (-e13 -e23*eigv22)/(e33-eig[2])
+        aux = sqrt(1 + eigv22^2 + eigv23^2)
+        eigv21 = 1/aux
+        eigv22 = eigv22/aux
+        eigv23 = eigv23/aux
     else
-      bla = ((e11 - eig[2])*(e22 - eig[2]) - e12*e12)
-      eigv23 = oneunit(T)
-      eigv21 = (e23*e12 - (e22-eig[2])*e13)/bla
-      eigv22 = (-e23 -e12*eigv21)/(e22-eig[2])
-      aux = sqrt(1 + eigv22^2 + eigv21^2)
-      eigv21 = eigv21/aux
-      eigv22 = eigv22/aux
-      eigv23 = 1.0/aux
+        bla = ((e11 - eig[2])*(e22 - eig[2]) - e12*e12)
+        eigv23 = oneunit(T)
+        eigv21 = (e23*e12 - (e22-eig[2])*e13)/bla
+        eigv22 = (-e23 -e12*eigv21)/(e22-eig[2])
+        aux = sqrt(1 + eigv22^2 + eigv21^2)
+        eigv21 = eigv21/aux
+        eigv22 = eigv22/aux
+        eigv23 = 1.0/aux
     end
 
     eigv1 = Vec(eigv11,eigv12,eigv13)
@@ -83,6 +83,6 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
 end
 
 function eigvec(t::SymTen{T}) where {T<:AbstractFloat} 
-     eigs = eig(t)
-     return eigs, eigvec(t,eigs)
+    eigs = eig(t)
+    return eigs, eigvec(t,eigs)
 end
