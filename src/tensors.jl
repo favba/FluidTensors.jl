@@ -19,19 +19,19 @@ Base.IndexStyle(a::Type{<:SymTen}) = Base.IndexLinear()
     I == 9 && return a.zz 
 end
 
-Base.size(a::SymTen) = 
+@inline Base.size(a::SymTen) = 
     (3,3)
 
-Base.length(a::SymTen) = 
+@inline Base.length(a::SymTen) = 
     9
 
-Base.zero(a::Type{SymTen{T}}) where {T} = 
+@inline Base.zero(a::Type{SymTen{T}}) where {T} = 
     SymTen{T}(zero(T),zero(T),zero(T),zero(T),zero(T),zero(T))
 
-SymTen(xx::T,xy::T,xz::T,yy::T,yz::T,zz::T) where {T} = 
+@inline SymTen(xx::T,xy::T,xz::T,yy::T,yz::T,zz::T) where {T} = 
     SymTen{T}(xx,xy,xz,yy,yz,zz)
 
-SymTen(q,w,e,r,t,y) = 
+@inline SymTen(q,w,e,r,t,y) = 
     SymTen(promote(q,w,e,r,t,y)...)
 
 @inline Base.:+(a::SymTen{T},b::SymTen{T2}) where {T,T2} = 
@@ -100,7 +100,19 @@ SymTen(q,w,e,r,t,y) =
 @inline traceless(S::SymTen) =
     S - inv(3)*LinearAlgebra.tr(S)*LinearAlgebra.I
 
+@inline function Base.:^(t::SymTen{T},n::Integer) where {T}
+    λ,e = eigvec(t)
+    r = (λ[1]^n)*(symouter(e[1],e[1])) + (λ[2]^n)*(symouter(e[2],e[2])) + (λ[3]^n)*(symouter(e[3],e[3]))
+end
 
+@inline function Base.literal_pow(::typeof(Base.:^),t::SymTen{T},::Val{2}) where {T<:AbstractFloat}
+    @fastmath SymTen{T}(muladd(t.xx,t.xx,muladd(t.xy,t.xy,t.xz^2)),
+              muladd(t.xx,t.xy,muladd(t.yy,t.xy,t.xz*t.yz)),
+              muladd(t.xx,t.xz,muladd(t.xy,t.yz,t.zz*t.xz)),
+              muladd(t.xy,t.xy,muladd(t.yy,t.yy,t.yz^2)),
+              muladd(t.xy,t.xz,muladd(t.yy,t.yz,t.zz*t.yz)),
+              muladd(t.xz,t.xz,muladd(t.yz,t.yz,t.zz^2)))
+end
 
 ############################### Array types ########################
 
