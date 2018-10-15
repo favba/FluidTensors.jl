@@ -17,76 +17,177 @@
         # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         # but computation error can leave it slightly outside this range.
 
-        ϕ =  ifelse(r <= -1, T(π/3), ifelse(r >= 1, zero(T), acos(r)/3))
+        @fastmath ϕ =  ifelse(r <= -1, T(π/3), ifelse(r >= 1, zero(T), acos(r)/3))
   
-          # the eigenvalues satisfy eig[3] <= eig[2] <= eig[1]
-        eig1 = q + 2*p*cos(ϕ)
-        eig3 = q + 2*p*cos(ϕ+(2*π/3))
-        eig2 = 3*q - eig1 - eig3     # since trace(E) = eig[1] + eig[2] + eig[3] = 3q
+          # the eigenvalues satisfy eig.z >= eig.y >= eig.x
+        eig3 = q + 2*p*cos(ϕ)
+        eig1 = q + 2*p*cos(ϕ+(2*π/3))
+        eig2 = 3*q - eig1 - eig3     # since trace(E) = eig.x + eig.y + eig.z = 3q
     end
 
     return (eig1,eig2,eig3)
 end
 
-@inline function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
-    e11 = t.xx
-    e12 = t.xy
-    e13 = t.xz
-    e22 = t.yy
-    e23 = t.yz
-    e33 = t.zz
+function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
+    S11 = t.xx
+    S12 = t.xy
+    S13 = t.xz
+    S22 = t.yy
+    S23 = t.yz
+    S33 = t.zz
 
-    bla = ((e22 - eig[1])*(e33 - eig[1]) - e23*e23)
-    if bla != 0
-        eigv11 = oneunit(T)
-        eigv12 = (e23*e13 - (e33-eig[1])*e12)/bla
-        eigv13 = (-e13 -e23*eigv12)/(e33-eig[1])
-        aux = @fastmath sqrt(1 + eigv12^2 + eigv13^2)
-        eigv11 = 1/aux
-        eigv12 = eigv12/aux
-        eigv13 = eigv13/aux
-    else
-        bla = ((e11 - eig[1])*(e22 - eig[1]) - e12*e12)
-        eigv13 = oneunit(T)
-        eigv11 = (e23*e12 - (e22-eig[1])*e13)/bla
-        eigv12 = (-e23 -e12*eigv11)/(e22-eig[1])
-        aux = @fastmath sqrt(1 + eigv12^2 + eigv11^2)
-        eigv11 = eigv11/aux
-        eigv12 = eigv12/aux
-        eigv13 = 1/aux
+    #=@fastmath=# begin
+        p1 = muladd(S12, S12, muladd(S13, S13, S23*S23))
+
+        if (p1 == 0) # diagonal tensor
+            v1 = Vec{T}(1,0,0)
+            v2 = Vec{T}(0,1,0)
+            v3 = Vec{T}(0,0,1)
+            if S11 < S22
+                if S22 < S33
+                    return (S11, S22, S33), (v1, v2, v3)
+                elseif S33 < S11
+                    return (S33, S11, S22), (v3, v1, v2)
+                else
+                    return (S11, S33, S22), (v1, v3, v2)
+                end
+            else #S22 < S11
+                if S11 < S33
+                    return (S22, S11, S33), (v2, v1, v3)
+                elseif S33 < S22
+                    return (S33, S22, S11), (v3, v2, v1)
+                else
+                    return (S22, S33, S11), (v2, v3, v1)
+                end
+            end
+        end
+
+        q = (S11 + S22 + S33)/3
+        p2 = (S11-q)^2 + (S22-q)^2 + (S33-q)^2 + 2*p1
+        p = @fastmath sqrt(p2/6)
+        r = ((S11-q)*(S22-q)*(S33-q) - (S11-q)*(S23^2) - (S12^2)*(S33-q) + 2*(S12*S13*S23) - (S13^2)*(S22-q))/(2*p*p*p)
+  
+        # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
+        # but computation error can leave it slightly outside this range.
+
+        @fastmath ϕ =  ifelse(r <= -1, T(π/3), ifelse(r >= 1, zero(T), acos(r)/3))
+  
+          # the eigenvalues satisfy eig.z >= eig.y >= eig.x
+        λ3 = q + 2*p*cos(ϕ)
+        λ1 = q + 2*p*cos(ϕ+(2*π/3))
+        λ2 = 3*q - λ1 - λ3     # since trace(E) = eig.x + eig.y + eig.z = 3q
     end
-    bla = ((e22 - eig[2])*(e33 - eig[2]) - e23*e23)
-    if bla != 0
-        eigv21 = oneunit(T)
-        eigv22 = (e23*e13 - (e33-eig[2])*e12)/bla
-        eigv23 = (-e13 -e23*eigv22)/(e33-eig[2])
-        aux = @fastmath sqrt(1 + eigv22^2 + eigv23^2)
-        eigv21 = 1/aux
-        eigv22 = eigv22/aux
-        eigv23 = eigv23/aux
+
+
+    ######################### This part was copied from https://github.com/KristofferC/Tensors.jl/blob/master/src/eigen.jl #################################
+
+    if r > 0
+        (λ1, λ3) = (λ3, λ1)
+    end
+      # Calculate the first eigenvector
+        # This should be orthogonal to these three rows of A - λ1*I
+        # Use all combinations of cross products and choose the "best" one
+    r₁ = Vec(S11 - λ1, S12, S13)
+    r₂ = Vec(S12, S22 - λ1, S23)
+    r₃ = Vec(S13, S23, S33 - λ1)
+    n₁ = r₁ ⋅ r₁
+    n₂ = r₂ ⋅ r₂
+    n₃ = r₃ ⋅ r₃
+
+    r₁₂ = r₁ × r₂
+    r₂₃ = r₂ × r₃
+    r₃₁ = r₃ × r₁
+    n₁₂ = r₁₂ ⋅ r₁₂
+    n₂₃ = r₂₃ ⋅ r₂₃
+    n₃₁ = r₃₁ ⋅ r₃₁
+
+    # we want best angle so we put all norms on same footing
+    # (cheaper to multiply by third nᵢ rather than divide by the two involved)
+    if n₁₂ * n₃ > n₂₃ * n₁
+        if n₁₂ * n₃ > n₃₁ * n₂
+            @fastmath ϕ1 = r₁₂ / sqrt(n₁₂)
+        else
+            @fastmath ϕ1 = r₃₁ / sqrt(n₃₁)
+        end
     else
-        bla = ((e11 - eig[2])*(e22 - eig[2]) - e12*e12)
-        eigv23 = oneunit(T)
-        eigv21 = (e23*e12 - (e22-eig[2])*e13)/bla
-        eigv22 = (-e23 -e12*eigv21)/(e22-eig[2])
-        aux = @fastmath sqrt(1 + eigv22^2 + eigv21^2)
-        eigv21 = eigv21/aux
-        eigv22 = eigv22/aux
-        eigv23 = 1.0/aux
+        if n₂₃ * n₁ > n₃₁ * n₂
+            @fastmath ϕ1 = r₂₃ / sqrt(n₂₃)
+        else
+            @fastmath ϕ1 = r₃₁ / sqrt(n₃₁)
+        end
     end
 
-    eigv1 = Vec(eigv11,eigv12,eigv13)
-    eigv2 = Vec(eigv21,eigv22,eigv23)
-    eigv3 = LinearAlgebra.cross(eigv1,eigv2)
+   # Calculate the second eigenvector
+    # This should be orthogonal to the previous eigenvector and the three
+    # rows of A - λ2*I. However, we need to "solve" the remaining 2x2 subspace
+    # problem in case the cross products are identically or nearly zero
 
-    return eigv1,eigv2,eigv3
+    # The remaing 2x2 subspace is:
+    if abs(ϕ1.x) < abs(ϕ1.y) # safe to set one component to zero, depending on this
+        @fastmath orthogonal1 = Vec(-ϕ1.z, zero(T), ϕ1.x) / sqrt(abs2(ϕ1.x) + abs2(ϕ1.z))
+    else
+        @fastmath orthogonal1 = Vec(zero(T), ϕ1.z, -ϕ1.y) / sqrt(abs2(ϕ1.y) + abs2(ϕ1.z))
+    end
+    orthogonal2 = ϕ1 × orthogonal1
+
+    # The projected 2x2 eigenvalue problem is C x = 0 where C is the projection
+    # of (A - λ2*I) onto the subspace {orthogonal1, orthogonal2}
+    a_orth1_1 = S11 * orthogonal1.x + S12 * orthogonal1.y + S13 * orthogonal1.z
+    a_orth1_2 = S12 * orthogonal1.x + S22 * orthogonal1.y + S23 * orthogonal1.z
+    a_orth1_3 = S13 * orthogonal1.x + S23 * orthogonal1.y + S33 * orthogonal1.z
+
+    a_orth2_1 = S11 * orthogonal2.x + S12 * orthogonal2.y + S13 * orthogonal2.z
+    a_orth2_2 = S12 * orthogonal2.x + S22 * orthogonal2.y + S23 * orthogonal2.z
+    a_orth2_3 = S13 * orthogonal2.x + S23 * orthogonal2.y + S33 * orthogonal2.z
+
+    c11 = orthogonal1.x*a_orth1_1 + orthogonal1.y*a_orth1_2 + orthogonal1.z*a_orth1_3 - λ2
+    c12 = orthogonal1.x*a_orth2_1 + orthogonal1.y*a_orth2_2 + orthogonal1.z*a_orth2_3
+    c22 = orthogonal2.x*a_orth2_1 + orthogonal2.y*a_orth2_2 + orthogonal2.z*a_orth2_3 - λ2
+
+    # Solve this robustly (some values might be small or zero)
+    c11² = abs2(c11)
+    c12² = abs2(c12)
+    c22² = abs2(c22)
+    if c11² >= c22²
+        if c11² > 0 || c12² > 0
+            if c11² >= c12²
+                tmp = c12 / c11
+                @fastmath p2 = inv(sqrt(1 + abs2(tmp)))
+                p1 = tmp * p2
+            else
+                tmp = c11 / c12 # TODO check for compex input
+                @fastmath p1 = inv(sqrt(1 + abs2(tmp)))
+                p2 = tmp * p1
+            end
+            ϕ2 = p1*orthogonal1 - p2*orthogonal2
+        else # c11 == 0 && c12 == 0 && c22 == 0 (smaller than c11)
+            ϕ2 = orthogonal1
+        end
+    else
+        if c22² >= c12²
+            tmp = c12 / c22
+            @fastmath p1 = inv(sqrt(1 + abs2(tmp)))
+            p2 = tmp * p1
+        else
+            tmp = c22 / c12
+            @fastmath p2 = inv(sqrt(1 + abs2(tmp)))
+            p1 = tmp * p2
+        end
+        ϕ2 = p1*orthogonal1 - p2*orthogonal2
+    end
+
+
+    # The third eigenvector is a simple cross product of the other two
+    ϕ3 = ϕ1 × ϕ2 # should be normalized already
+
+    ###############################################################################################################################333
+    if r > 0
+        (λ1, λ3) = (λ3, λ1)
+        (ϕ1, ϕ3) = (ϕ3, ϕ1)
+    end
+
+    return ((λ1,λ2,λ3),(ϕ1,ϕ2,ϕ3))
 end
-
-@inline function eigvec(t::SymTen{T}) where {T<:AbstractFloat} 
-    eigs = eig(t)
-    return eigs, eigvec(t,eigs)
-end
-
 
 @inline stress_state(a::Number,b::Number,c::Number) = (-3*sqrt(6)*a*b*c)/((a^2+b^2+c^2)^1.5)
 @inline stress_state(t::SymTen) = stress_state(eig(t)...)
