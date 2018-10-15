@@ -195,6 +195,10 @@ struct SymTenArray{T,N,A<:AbstractArray{T,N}} <: AbstractSymTenArray{T,N}
     zz::A
 end
 
+@inline SymTenArray(xx::AbstractArray{T,N},xy::B,xz::B,yy::B,yz::B,zz::B) where{T,N,B<:AbstractArray{T,N}} = SymTenArray{T,N,B}(xx,xy,xz,yy,yz,zz)
+@inline SymTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
+@inline SymTenArray(dims::Vararg{Int,N}) where {N} = SymTenArray{Float64}(dims...)
+
 @inline xxvec(v::SymTenArray) =
     v.xx
 @inline xyvec(v::SymTenArray) =
@@ -283,6 +287,10 @@ struct SymTrTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:Abstract
     yy::D
     yz::E
 end
+
+@inline SymTrTenArray(xx::AbstractArray{T,N},xy::B,xz::B,yy::B,yz::B,zz::B) where{T,N,B<:AbstractArray{T,N}} = SymTrTenArray{T,N,B}(xx,xy,xz,yy,yz)
+@inline SymTrTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTrTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
+@inline SymTrTenArray(dims::Vararg{Int,N}) where {N} = SymTrTenArray{Float64}(dims...)
     
 @inline xxvec(v::SymTrTenArray) =
     v.xx
