@@ -1,4 +1,4 @@
-function eig(t::SymTen{T}) where T<:AbstractFloat
+@inline function eig(t::SymTen{T}) where T<:AbstractFloat
 
     e11 = t.xx
     e12 = t.xy
@@ -28,7 +28,7 @@ function eig(t::SymTen{T}) where T<:AbstractFloat
     return (eig1,eig2,eig3)
 end
 
-function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
+@inline function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
     e11 = t.xx
     e12 = t.xy
     e13 = t.xz
@@ -41,7 +41,7 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
         eigv11 = oneunit(T)
         eigv12 = (e23*e13 - (e33-eig[1])*e12)/bla
         eigv13 = (-e13 -e23*eigv12)/(e33-eig[1])
-        aux = sqrt(1 + eigv12^2 + eigv13^2)
+        aux = @fastmath sqrt(1 + eigv12^2 + eigv13^2)
         eigv11 = 1/aux
         eigv12 = eigv12/aux
         eigv13 = eigv13/aux
@@ -50,7 +50,7 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
         eigv13 = oneunit(T)
         eigv11 = (e23*e12 - (e22-eig[1])*e13)/bla
         eigv12 = (-e23 -e12*eigv11)/(e22-eig[1])
-        aux = sqrt(1 + eigv12^2 + eigv11^2)
+        aux = @fastmath sqrt(1 + eigv12^2 + eigv11^2)
         eigv11 = eigv11/aux
         eigv12 = eigv12/aux
         eigv13 = 1/aux
@@ -60,7 +60,7 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
         eigv21 = oneunit(T)
         eigv22 = (e23*e13 - (e33-eig[2])*e12)/bla
         eigv23 = (-e13 -e23*eigv22)/(e33-eig[2])
-        aux = sqrt(1 + eigv22^2 + eigv23^2)
+        aux = @fastmath sqrt(1 + eigv22^2 + eigv23^2)
         eigv21 = 1/aux
         eigv22 = eigv22/aux
         eigv23 = eigv23/aux
@@ -69,7 +69,7 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
         eigv23 = oneunit(T)
         eigv21 = (e23*e12 - (e22-eig[2])*e13)/bla
         eigv22 = (-e23 -e12*eigv21)/(e22-eig[2])
-        aux = sqrt(1 + eigv22^2 + eigv21^2)
+        aux = @fastmath sqrt(1 + eigv22^2 + eigv21^2)
         eigv21 = eigv21/aux
         eigv22 = eigv22/aux
         eigv23 = 1.0/aux
@@ -82,7 +82,11 @@ function eigvec(t::SymTen{T},eig::NTuple{3,T}) where {T<:AbstractFloat}
     return eigv1,eigv2,eigv3
 end
 
-function eigvec(t::SymTen{T}) where {T<:AbstractFloat} 
+@inline function eigvec(t::SymTen{T}) where {T<:AbstractFloat} 
     eigs = eig(t)
     return eigs, eigvec(t,eigs)
 end
+
+
+@inline stress_state(a::Number,b::Number,c::Number) = (-3*sqrt(6)*a*b*c)/((a^2+b^2+c^2)^1.5)
+@inline stress_state(t::SymTen) = stress_state(eig(t)...)
