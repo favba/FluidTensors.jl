@@ -11,10 +11,8 @@ Base.IndexStyle(a::Type{<:AbstractVec}) = Base.IndexLinear()
 @inline ypos(a::AbstractVec) = a.y
 @inline zpos(a::AbstractVec) = a.z
 
-LinearAlgebra.norm(a::Vec{<:Real}) = @fastmath sqrt(muladd(xpos(a), xpos(a), muladd(ypos(a), ypos(a), zpos(a)^2)))
-LinearAlgebra.norm(a::Vec) = @fastmath sqrt(abs2(a.x)+abs2(a.y)+abs2(a.z))
-
-distance(a::AbstractVec,b::AbstractVec) = @fastmath sqrt((xpos(b)-xpos(a))^2 + (ypos(b)-ypos(a))^2 + (zpos(b)-zpos(a))^2)
+@inline LinearAlgebra.norm(a::Vec{<:Real}) = @fastmath sqrt(muladd(xpos(a), xpos(a), muladd(ypos(a), ypos(a), zpos(a)^2)))
+@inline LinearAlgebra.norm(a::Vec) = @fastmath sqrt(abs2(a.x)+abs2(a.y)+abs2(a.z))
 
 @inline Base.:+(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)+xpos(b), ypos(a)+ypos(b), zpos(a)+zpos(b))
 @inline Base.:-(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)-xpos(b), ypos(a)-ypos(b), zpos(a)-zpos(b))
@@ -26,13 +24,13 @@ distance(a::AbstractVec,b::AbstractVec) = @fastmath sqrt((xpos(b)-xpos(a))^2 + (
 
 @inline LinearAlgebra.cross(a::AbstractVec,b::AbstractVec) = @fastmath Vec(ypos(a)*zpos(b) - zpos(a)*ypos(b), zpos(a)*xpos(b) - xpos(a)*zpos(b), xpos(a)*ypos(b) - ypos(a)*xpos(b))
 
-anglecos(a::Vec,b::Vec) = LinearAlgebra.dot(a,b)/(LinearAlgebra.norm(a)*LinearAlgebra.norm(b))
+@inline anglecos(a::Vec,b::Vec) = LinearAlgebra.dot(a,b)/(LinearAlgebra.norm(a)*LinearAlgebra.norm(b))
 
 @inline Base.size(a::Vec) = (3,)
 @inline Base.length(a::Vec) = 3
-Base.zero(a::Type{Vec{T}}) where {T} = Vec{T}(zero(T),zero(T),zero(T))
-Vec(x::T,y::T,z::T) where T = Vec{T}(x,y,z)
-Vec(x,y,z) = Vec(promote(x,y,z)...)
+@inline Base.zero(a::Type{Vec{T}}) where {T} = Vec{T}(zero(T),zero(T),zero(T))
+@inline Vec(x::T,y::T,z::T) where T = Vec{T}(x,y,z)
+@inline Vec(x,y,z) = Vec(promote(x,y,z)...)
 
 
 abstract type AbstractVecArray{T,N} <: AbstractArray{Vec{T},N} end
@@ -78,7 +76,7 @@ end
 end
 
 
-Base.size(v::AbstractVecArray) =
+@inline Base.size(v::AbstractVecArray) =
     size(xvec(v))
 
 struct VecArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N}} <: AbstractVecArray{T,N}
@@ -91,7 +89,7 @@ struct VecArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray
     end
 end
 
-VecArray(x::AbstractArray{T,N},y::B,z::C) where{T,N,B<:AbstractArray{T,N},C<:AbstractArray{T,N}} = VecArray{T,N,typeof(x),B,C}(x,y,z)
+@inline VecArray(x::AbstractArray{T,N},y::B,z::C) where{T,N,B<:AbstractArray{T,N},C<:AbstractArray{T,N}} = VecArray{T,N,typeof(x),B,C}(x,y,z)
 
 @inline xvec(v::VecArray) =
     v.x
