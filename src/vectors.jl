@@ -90,6 +90,11 @@ struct VecArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray
 end
 
 @inline VecArray(x::AbstractArray{T,N},y::B,z::C) where{T,N,B<:AbstractArray{T,N},C<:AbstractArray{T,N}} = VecArray{T,N,typeof(x),B,C}(x,y,z)
+@inline VecArray{T}(dims::Vararg{Int,N}) where {T,N} = VecArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
+@inline VecArray(dims::Vararg{Int,N}) where {N} = VecArray{Float64}(dims...)
+
+Base.read!(io::NTuple{3,A},a::VecArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.x); read!(io[2],a.y); read!(io[3],a.z))
+Base.write(io::NTuple{3,A},a::VecArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.x); write(io[2],a.y); write(io[3],a.z))
 
 @inline xvec(v::VecArray) =
     v.x

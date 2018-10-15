@@ -210,6 +210,9 @@ end
 
 Base.similar(a::SymTenArray) = SymTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz),similar(a.zz))
 
+Base.read!(io::NTuple{6,A},a::SymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xx); read!(io[2],a.xy); read!(io[3],a.xz); read!(io[4],a.yy); read!(io[5],a.yz); read!(io[6],a.zz))
+Base.write(io::NTuple{6,A},a::SymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xx); write(io[2],a.xy); write(io[3],a.xz); write(io[4],a.yy); write(io[5],a.yz); write(io[6],a.zz))
+
 abstract type AbstractSymTrTenArray{T,N} <: AbstractArray{SymTen{T},N} end
 
 @inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},i::Int) where {T,N}
@@ -293,3 +296,6 @@ end
     v.yz
 
 Base.similar(a::SymTrTenArray) = SymTrTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz))
+
+Base.read!(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xx); read!(io[2],a.xy); read!(io[3],a.xz); read!(io[4],a.yy); read!(io[5],a.yz))
+Base.write(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xx); write(io[2],a.xy); write(io[3],a.xz); write(io[4],a.yy); write(io[5],a.yz))
