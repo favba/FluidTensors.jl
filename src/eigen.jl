@@ -17,7 +17,13 @@
         # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
         # but computation error can leave it slightly outside this range.
 
-        @fastmath ϕ =  ifelse(r <= -1, T(π/3), ifelse(r >= 1, zero(T), acos(r)/3))
+        @fastmath if r <= -1
+            ϕ =  T(π/3)
+        elseif r >= 1
+            ϕ = zero(T)
+        else
+            ϕ = acos(r)/3
+        end
   
           # the eigenvalues satisfy eig.z >= eig.y >= eig.x
         eig3 = q + 2*p*cos(ϕ)
@@ -186,7 +192,7 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
         (ϕ1, ϕ3) = (ϕ3, ϕ1)
     end
 
-    return ((λ1,λ2,λ3),(ϕ1,ϕ2,ϕ3))
+    return (λ1,λ2,λ3),(ϕ1,ϕ2,ϕ3)
 end
 
 @inline stress_state(a::Number,b::Number,c::Number) = (-3*sqrt(6)*a*b*c)/((a^2+b^2+c^2)^1.5)
