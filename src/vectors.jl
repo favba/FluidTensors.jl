@@ -89,6 +89,11 @@ struct VecArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray
     end
 end
 
+@generated function Base.IndexStyle(::Type{<:VecArray{T,N,A,B,C}}) where {T,N,A,B,C} 
+    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C)) ? IndexLinear() : IndexCartesian()
+    return :($indexstyle)
+end
+
 @inline VecArray(x::AbstractArray{T,N},y::B,z::C) where{T,N,B<:AbstractArray{T,N},C<:AbstractArray{T,N}} = VecArray{T,N,typeof(x),B,C}(x,y,z)
 @inline VecArray{T}(dims::Vararg{Int,N}) where {T,N} = VecArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
 @inline VecArray(dims::Vararg{Int,N}) where {N} = VecArray{Float64}(dims...)

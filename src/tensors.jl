@@ -186,16 +186,21 @@ end
     return v
 end
 
-struct SymTenArray{T,N,A<:AbstractArray{T,N}} <: AbstractSymTenArray{T,N}
+struct SymTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N},F<:AbstractArray{T,N}} <: AbstractSymTenArray{T,N}
     xx::A
-    xy::A
-    xz::A
-    yy::A
-    yz::A
-    zz::A
+    xy::B
+    xz::C
+    yy::D
+    yz::E
+    zz::F
 end
 
-@inline SymTenArray(xx::AbstractArray{T,N},xy::B,xz::B,yy::B,yz::B,zz::B) where{T,N,B<:AbstractArray{T,N}} = SymTenArray{T,N,B}(xx,xy,xz,yy,yz,zz)
+@generated function Base.IndexStyle(::Type{<:SymTenArray{T,N,A,B,C,D,E,F}}) where {T,N,A,B,C,D,E,F} 
+    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C,D,E,F)) ? IndexLinear() : IndexCartesian()
+    return :($indexstyle)
+end
+
+@inline SymTenArray(xx::A,xy::B,xz::C,yy::D,yz::E,zz::F) where {T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N},F<:AbstractArray{T,N}} = SymTenArray{T,N,A,B,C,D,E,F}(xx,xy,xz,yy,yz,zz)
 @inline SymTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
 @inline SymTenArray(dims::Vararg{Int,N}) where {N} = SymTenArray{Float64}(dims...)
 
@@ -288,7 +293,12 @@ struct SymTrTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:Abstract
     yz::E
 end
 
-@inline SymTrTenArray(xx::AbstractArray{T,N},xy::B,xz::B,yy::B,yz::B,zz::B) where{T,N,B<:AbstractArray{T,N}} = SymTrTenArray{T,N,B}(xx,xy,xz,yy,yz)
+@generated function Base.IndexStyle(::Type{<:SymTrTenArray{T,N,A,B,C,D,E}}) where {T,N,A,B,C,D,E} 
+    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C,D,E)) ? IndexLinear() : IndexCartesian()
+    return :($indexstyle)
+end
+
+@inline SymTrTenArray(xx::A,xy::B,xz::C,yy::D,yz::E) where{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N}} = SymTrTenArray{T,N,A,B,C,D,E}(xx,xy,xz,yy,yz)
 @inline SymTrTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTrTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
 @inline SymTrTenArray(dims::Vararg{Int,N}) where {N} = SymTrTenArray{Float64}(dims...)
     
