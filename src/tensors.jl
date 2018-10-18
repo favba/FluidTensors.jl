@@ -114,206 +114,117 @@ end
               muladd(t.xz,t.xz,muladd(t.yz,t.yz,t.zz^2)))
 end
 
-############################### Array types ########################
+####### Full Tensors
 
-
-abstract type AbstractSymTenArray{T,N} <: AbstractArray{SymTen{T},N} end
-
-Base.size(v::AbstractSymTenArray) =
-    size(xxvec(v))
-
-@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTenArray{T,N},i::Int) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    zz = zzvec(v)
-    xxv = xx[i]
-    xyv = xy[i]
-    xzv = xz[i]
-    yyv = yy[i]
-    yzv = yz[i]
-    zzv = zz[i]
-    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,zzv)
-end
-    
-@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTenArray{T,N},I::Vararg{Int,N}) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    zz = zzvec(v)
-    xxv = xx[I...]
-    xyv = xy[I...]
-    xzv = xz[I...]
-    yyv = yy[I...]
-    yzv = yz[I...]
-    zzv = zz[I...]
-    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,zzv)
-end
-    
-@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTenArray,ten,i::Int)
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    zz = zzvec(v)
-    setindex!(xx,ten.xx,i)
-    setindex!(xy,ten.xy,i)
-    setindex!(xz,ten.xz,i)
-    setindex!(yy,ten.yy,i)
-    setindex!(yz,ten.yz,i)
-    setindex!(zz,ten.zz,i)
-    return v
-end
-    
-@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTenArray{T,N},ten,I::Vararg{Int,N}) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    zz = zzvec(v)
-    setindex!(xx,ten.xx,I...)
-    setindex!(xy,ten.xy,I...)
-    setindex!(xz,ten.xz,I...)
-    setindex!(yy,ten.yy,I...)
-    setindex!(yz,ten.yz,I...)
-    setindex!(zz,ten.zz,I...)
-    return v
+struct Ten{T<:Number} <: AbstractTen{T}
+    xx::T
+    yx::T
+    zx::T
+    xy::T
+    yy::T 
+    zy::T 
+    xz::T
+    yz::T 
+    zz::T
 end
 
-struct SymTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N},F<:AbstractArray{T,N}} <: AbstractSymTenArray{T,N}
-    xx::A
-    xy::B
-    xz::C
-    yy::D
-    yz::E
-    zz::F
+
+Base.IndexStyle(a::Type{<:Ten}) = Base.IndexLinear()
+
+@inline Base.@propagate_inbounds function Base.getindex(a::Ten,I::Integer) 
+    @boundscheck checkbounds(a,I)
+    @inbounds getfield(a,I)
 end
 
-@generated function Base.IndexStyle(::Type{<:SymTenArray{T,N,A,B,C,D,E,F}}) where {T,N,A,B,C,D,E,F} 
-    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C,D,E,F)) ? IndexLinear() : IndexCartesian()
-    return :($indexstyle)
+@inline Base.size(a::Ten) = 
+    (3,3)
+
+@inline Base.length(a::Ten) = 
+    9
+
+@inline Base.zero(a::Type{Ten{T}}) where {T} = 
+    Ten{T}(zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T),zero(T))
+
+@inline Ten(xx::T,xy::T,xz::T,yy::T,yz::T,zz::T) where {T} = 
+    Ten{T}(xx,xy,xz,yy,yz,zz)
+
+@inline Ten(q,w,e,r,t,y) = 
+    Ten(promote(q,w,e,r,t,y)...)
+
+@inline Base.:+(a::Ten{T},b::Ten{T2}) where {T,T2} = 
+    @fastmath Ten{promote_type(T,T2)}(a.xx+b.xx, a.yx+b.yx, a.zx+b.zx, a.xy+b.xy, a.yy+b.yy, a.zy+b.zy, a.xz+b.xz, a.yz + b.yz, a.zz+b.zz)
+
+@inline Base.:-(A::Ten{T}) where T = Ten{T}(-A.xx,-A.yx,-A.zx,-A.xy,-A.yy,-A.yz,-A.xz,-A.yz,-A.zz)
+
+@inline Base.:-(a::Ten{T},b::Ten{T2}) where {T,T2} = 
+    @fastmath Ten{promote_type(T,T2)}(a.xx-b.xx, a.yx-b.yx, a.zx-b.zx, a.xy-b.xy, a.yy - b.yy, a.zy - b.zy, a.xz - b.xz, a.yz - b.yz, a.zz - a.zz)
+
+@inline Base.:*(a::T,b::Ten{T2}) where {T<:Number,T2<:Number} = 
+    @fastmath Ten{promote_type(T,T2)}(a*b.xx, a*b.yx, a*b.zx, a*b.xy, a*b.yy, a*b.zy, a*b.xz, a*b.yz, a*b.zz)
+
+@inline Base.:*(b::Ten{T},a::T2) where {T<:Number,T2<:Number} = 
+    a*b
+
+@inline Base.:/(b::Ten{T},a::T2) where {T<:Number,T2<:Number} = 
+    @fastmath inv(a)*b
+
+@inline Base.:(:)(a::Ten,b::Ten) = 
+    @fastmath muladd(a.xx, b.xx, muladd(a.yx, b.yx, muladd(a.zx, b.zx, muladd(a.xy, b.xy, muladd(a.yy, b.yy, muladd(a.zy, b.zy, muladd(a.xz, b.xz, muladd(a.yz, b.yz, a.zz*b.zz))))))))
+
+@inline Base.:(+)(L::LinearAlgebra.UniformScaling,A::Ten) =
+    Ten(A.xx + L.λ, A.yx, A.zx, A.xy, A.yy + L.λ, A.zy, A.xz, A.yz, A.zz + L.λ)
+
+@inline Base.:(+)(A::Ten, L::LinearAlgebra.UniformScaling) = L+A
+
+@inline Base.:(-)(A::Ten, L::LinearAlgebra.UniformScaling) =
+    Ten(A.xx - L.λ, A.yx, A.zx, A.xy, A.yy - L.λ, A.zy, A.xz, A.yz, A.zz - L.λ)
+
+@inline Base.:(-)(L::LinearAlgebra.UniformScaling,A::Ten) = -(A-L)
+
+
+@inline LinearAlgebra.tr(a::Ten) =
+    @fastmath a.xx + a.yy + a.zz
+
+@inline LinearAlgebra.norm(a::Ten) = 
+    @fastmath sqrt(2(a:a))
+
+@inline LinearAlgebra.dot(a::Ten{T},b::Ten{T2}) where {T<:Number,T2<:Number} = 
+    @fastmath Ten{promote_type(T,T2)}(muladd(a.xx, b.xx, muladd(a.xy, b.yx, a.xz*b.zx)), muladd(a.yx, b.xx, muladd(a.yy, b.yx, a.yz*b.zx)), muladd(a.zx, b.xx, muladd(a.zy, b.yx, a.zz*b.zx)),
+                                      muladd(a.xx, b.xy, muladd(a.xy, b.yy, a.xz*b.zy)), muladd(a.yx, b.xy, muladd(a.yy, b.yy, a.yz*b.zy)), muladd(a.zx, b.xy, muladd(a.zy, b.yy, a.zz*b.zy)),
+                                      muladd(a.xx, b.xz, muladd(a.xy, b.yz, a.xz*b.zz)), muladd(a.yx, b.xz, muladd(a.yy, b.yz, a.yz*b.zz)), muladd(a.zx, b.xz, muladd(a.zy, b.yz, a.zz*b.zz)))
+
+@inline LinearAlgebra.dot(a::Ten{T},b::Vec{T2}) where {T<:Number,T2<:Number} = 
+    @fastmath Vec{promote_type(T,T2)}(muladd(a.xx, b.x, muladd(a.xy, b.y, a.xz*b.z)), 
+                                      muladd(a.yx, b.x, muladd(a.yy, b.y, a.yz*b.z)),
+                                      muladd(a.zx, b.x, muladd(a.zy, b.y, a.zz*b.z)))
+
+@inline LinearAlgebra.dot(b::Vec,a::Ten) = 
+    @fastmath Vec{promote_type(T,T2)}(muladd(a.xx, b.x, muladd(a.yx, b.y, a.zx*b.z)), 
+                                      muladd(a.xy, b.x, muladd(a.yy, b.y, a.zy*b.z)),
+                                      muladd(a.xz, b.x, muladd(a.yz, b.y, a.zz*b.z)))
+
+@inline Base.adjoint(a::Ten{T}) where T = Ten{T}(adjoint(a.xx),adjoint(a.xy),adjoint(a.xz),adjoint(a.yx),adjoint(a.yy),adjoint(a.yz),adjoint(a.zx),adjoint(a.zy),adjoint(a.zz))
+
+@inline outer(a::Vec,b::Vec) = #symmetric part of the outer product of two vectors
+    @fastmath Ten(a.x*b.x, a.y*b.x, a.z*b.x,
+                  a.x*b.y, a.y*b.y, a.z*b.y,
+                  a.x*b.z, a.y*b.z, a.z*b.z)
+
+const ⊗ = outer
+
+@inline traceless(S::Ten) =
+    S - inv(3)*LinearAlgebra.tr(S)*LinearAlgebra.I
+
+function Base.:^(t::Ten{T},n::Integer) where {T}
+    n == 1 && return t
+    n == 2 && return t⋅t
+    return t⋅(t^(n-1))
 end
 
-@inline SymTenArray(xx::A,xy::B,xz::C,yy::D,yz::E,zz::F) where {T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N},F<:AbstractArray{T,N}} = SymTenArray{T,N,A,B,C,D,E,F}(xx,xy,xz,yy,yz,zz)
-@inline SymTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
-@inline SymTenArray(dims::Vararg{Int,N}) where {N} = SymTenArray{Float64}(dims...)
-
-@inline xxvec(v::SymTenArray) =
-    v.xx
-@inline xyvec(v::SymTenArray) =
-    v.xy
-@inline xzvec(v::SymTenArray) =
-    v.xz
-@inline yyvec(v::SymTenArray) =
-    v.yy
-@inline yzvec(v::SymTenArray) =
-    v.yz
-@inline zzvec(v::SymTenArray) =
-    v.zz
-
-Base.similar(a::SymTenArray) = SymTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz),similar(a.zz))
-
-Base.read!(io::NTuple{6,A},a::SymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xx); read!(io[2],a.xy); read!(io[3],a.xz); read!(io[4],a.yy); read!(io[5],a.yz); read!(io[6],a.zz))
-Base.write(io::NTuple{6,A},a::SymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xx); write(io[2],a.xy); write(io[3],a.xz); write(io[4],a.yy); write(io[5],a.yz); write(io[6],a.zz))
-
-abstract type AbstractSymTrTenArray{T,N} <: AbstractArray{SymTen{T},N} end
-
-@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},i::Int) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    xxv = xx[i]
-    xyv = xy[i]
-    xzv = xz[i]
-    yyv = yy[i]
-    yzv = yz[i]
-    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,-(xxv+yyv))
-end
-    
-@inline Base.@propagate_inbounds function Base.getindex(v::AbstractSymTrTenArray{T,N},I::Vararg{Int,N}) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    xxv = xx[I...]
-    xyv = xy[I...]
-    xzv = xz[I...]
-    yyv = yy[I...]
-    yzv = yz[I...]
-    return SymTen{T}(xxv,xyv,xzv,yyv,yzv,-(xxv+yyv))
-end
-    
-@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTrTenArray,ten,i::Int)
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    ten = traceless(ten)
-    setindex!(xx,ten.xx,i)
-    setindex!(xy,ten.xy,i)
-    setindex!(xz,ten.xz,i)
-    setindex!(yy,ten.yy,i)
-    setindex!(yz,ten.yz,i)
-    return v
-end
-    
-@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractSymTrTenArray{T,N},vec,I::Vararg{Int,N}) where {T,N}
-    xx = xxvec(v)
-    xy = xyvec(v)
-    xz = xzvec(v)
-    yy = yyvec(v)
-    yz = yzvec(v)
-    ten = traceless(vec)
-    setindex!(xx,ten.xx,I...)
-    setindex!(xy,ten.xy,I...)
-    setindex!(xz,ten.xz,I...)
-    setindex!(yy,ten.yy,I...)
-    setindex!(yz,ten.yz,I...)
-    return v
+@inline function Base.literal_pow(::typeof(Base.:^),t::Ten{T},::Val{2}) where {T<:AbstractFloat}
+    return t⋅t
 end
 
-Base.size(v::AbstractSymTrTenArray) =
-    size(xxvec(v))
+@inline SymTen(t::Ten) = SymTen(t.xx, (t.xy + t.yx)/2, (t.xz + t.zx)/2, t.yy, (t.zy + t.yz)/2, t.zz)
 
-struct SymTrTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N}} <: AbstractSymTrTenArray{T,N}
-    xx::A
-    xy::B
-    xz::C
-    yy::D
-    yz::E
-end
-
-@generated function Base.IndexStyle(::Type{<:SymTrTenArray{T,N,A,B,C,D,E}}) where {T,N,A,B,C,D,E} 
-    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C,D,E)) ? IndexLinear() : IndexCartesian()
-    return :($indexstyle)
-end
-
-@inline SymTrTenArray(xx::A,xy::B,xz::C,yy::D,yz::E) where{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N}} = SymTrTenArray{T,N,A,B,C,D,E}(xx,xy,xz,yy,yz)
-@inline SymTrTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTrTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
-@inline SymTrTenArray(dims::Vararg{Int,N}) where {N} = SymTrTenArray{Float64}(dims...)
-    
-@inline xxvec(v::SymTrTenArray) =
-    v.xx
-@inline xyvec(v::SymTrTenArray) =
-    v.xy
-@inline xzvec(v::SymTrTenArray) =
-    v.xz
-@inline yyvec(v::SymTrTenArray) =
-    v.yy
-@inline yzvec(v::SymTrTenArray) =
-    v.yz
-
-Base.similar(a::SymTrTenArray) = SymTrTenArray(similar(a.xx),similar(a.xy),similar(a.xz),similar(a.yy),similar(a.yz))
-
-Base.read!(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xx); read!(io[2],a.xy); read!(io[3],a.xz); read!(io[4],a.yy); read!(io[5],a.yz))
-Base.write(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xx); write(io[2],a.xy); write(io[3],a.xz); write(io[4],a.yy); write(io[5],a.yz))
+include("tensorarrays.jl")
