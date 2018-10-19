@@ -46,6 +46,7 @@ end
          a.y -a.x 0.]
     @test Lie(A,a) ==  A*W - W*A
     @test symouter(a,b) === SymTen(4.,6.5,9.,10.,13.5,18.)
+    @test outer(a,b) === Ten(4.,8.,12.,5.,10.,15.,6.,12.,18.)
 end
 
 @testset "UniformScaling" begin
@@ -66,5 +67,17 @@ end
     @test v.x[1] == -1 && v.y[1] == -2 && v.z[1] == -3.
 end
 
-@testset "TenArrays" begin
+@testset "Ten Mixed type operations" begin
+    v = Vec(rand(3)...)
+    for a in (SymTen(rand(6)...), AntiSymTen(rand(3)...), Ten(rand(9)...))
+        for b in (SymTen(rand(6)...), AntiSymTen(rand(3)...), Ten(rand(9)...))
+            for op in (+,-)
+                @test op(a,b) ≈ op(Matrix(a),Matrix(b))
+            end
+            @test a⋅b ≈ a*b
+        end
+        @test a⋅v ≈ Matrix(a)*Vector(v)
+        @test v⋅a ≈ Matrix(a)'*Vector(v)
+        @test -a ≈ -Matrix(a)
+    end
 end

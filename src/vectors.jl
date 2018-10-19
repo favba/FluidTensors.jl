@@ -16,6 +16,7 @@ Base.IndexStyle(a::Type{<:AbstractVec}) = Base.IndexLinear()
 
 @inline Base.:+(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)+xpos(b), ypos(a)+ypos(b), zpos(a)+zpos(b))
 @inline Base.:-(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)-xpos(b), ypos(a)-ypos(b), zpos(a)-zpos(b))
+@inline Base.:-(a::AbstractVec) = Vec(-xpos(a),-ypos(a),-zpos(a))
 @inline Base.:*(a::Number,b::AbstractVec) = @fastmath Vec(a*xpos(b), a*ypos(b), a*zpos(b))
 @inline Base.:*(b::AbstractVec,a::Number) = @fastmath Vec(a*xpos(b), a*ypos(b), a*zpos(b))
 @inline Base.:/(b::AbstractVec,a::Number) = @fastmath inv(a)*b
