@@ -174,6 +174,11 @@ end
 @inline Base.:(:)(a::Ten,b::Ten) = 
     @fastmath muladd(a.xx, b.xx, muladd(a.yx, b.yx, muladd(a.zx, b.zx, muladd(a.xy, b.xy, muladd(a.yy, b.yy, muladd(a.zy, b.zy, muladd(a.xz, b.xz, muladd(a.yz, b.yz, a.zz*b.zz))))))))
 
+@inline Base.:(:)(a::SymTen,b::Ten) = 
+    @fastmath muladd(a.xx, b.xx, muladd(a.xy, b.yx, muladd(a.xz, b.zx, muladd(a.xy, b.xy, muladd(a.yy, b.yy, muladd(a.yz, b.zy, muladd(a.xz, b.xz, muladd(a.yz, b.yz, a.zz*b.zz))))))))
+
+@inline Base.:(:)(b::Ten,a::SymTen) = a:b
+
 @inline Base.:(+)(L::LinearAlgebra.UniformScaling,A::Ten) =
     Ten(A.xx + L.λ, A.yx, A.zx, A.xy, A.yy + L.λ, A.zy, A.xz, A.yz, A.zz + L.λ)
 
@@ -291,7 +296,16 @@ end
     @fastmath inv(a)*b
 
 @inline Base.:(:)(a::AntiSymTen,b::AntiSymTen) = 
-    @fastmath 2muladd(a.xy, b.xy, muladd(a.xz, b.xz, a.yz*a.yz))
+    @fastmath 2muladd(a.xy, b.xy, muladd(a.xz, b.xz, a.yz*b.yz))
+
+@inline Base.:(:)(a::Ten,b::AntiSymTen) = 
+    @fastmath muladd(a.xy,b.xy,muladd(a.xz,b.xz,a.yz*b.yz)) - muladd(a.yx,b.xy,muladd(a.zx,b.xz, a.zy*b.yz))
+
+@inline Base.:(:)(b::AntiSymTen,a::Ten) = a:b
+
+@inline Base.:(:)(a::AntiSymTen,b::SymTen) = false
+
+@inline Base.:(:)(a::SymTen,b::AntiSymTen) = false
 
 @inline Base.:(+)(L::LinearAlgebra.UniformScaling,A::AntiSymTen) =
     Ten(L.λ, -A.xy, -A.xz, A.xy, L.λ, -A.yz, A.xz, A.yz, L.λ)

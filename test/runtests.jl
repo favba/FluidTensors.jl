@@ -75,9 +75,14 @@ end
                 @test op(a,b) ≈ op(Matrix(a),Matrix(b))
             end
             @test a⋅b ≈ a*b
+            @test a:b ≈ tr(Matrix(a)'*Matrix(b)) atol=2e-15
         end
         @test a⋅v ≈ Matrix(a)*Vector(v)
         @test v⋅a ≈ Matrix(a)'*Vector(v)
         @test -a ≈ -Matrix(a)
+        @test a + I ≈ Matrix(a) + I
+        @test a - I ≈ Matrix(a) - I
+        @test I + a ≈ I + Matrix(a)
+        @test I - a ≈ I - Matrix(a)
     end
 end
