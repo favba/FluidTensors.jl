@@ -81,7 +81,6 @@ end
     return :($indexstyle)
 end
 
-@inline SymTenArray(xx::A,xy::B,xz::C,yy::D,yz::E,zz::F) where {T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N},F<:AbstractArray{T,N}} = SymTenArray{T,N,A,B,C,D,E,F}(xx,xy,xz,yy,yz,zz)
 @inline SymTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
 @inline SymTenArray(dims::Vararg{Int,N}) where {N} = SymTenArray{Float64}(dims...)
 
@@ -179,7 +178,6 @@ end
     return :($indexstyle)
 end
 
-@inline SymTrTenArray(xx::A,xy::B,xz::C,yy::D,yz::E) where{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N},D<:AbstractArray{T,N},E<:AbstractArray{T,N}} = SymTrTenArray{T,N,A,B,C,D,E}(xx,xy,xz,yy,yz)
 @inline SymTrTenArray{T}(dims::Vararg{Int,N}) where {T,N} = SymTrTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
 @inline SymTrTenArray(dims::Vararg{Int,N}) where {N} = SymTrTenArray{Float64}(dims...)
     
