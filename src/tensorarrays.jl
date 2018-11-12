@@ -198,3 +198,75 @@ Base.similar(a::SymTrTenArray) = SymTrTenArray(similar(a.xx),similar(a.xy),simil
 
 Base.read!(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xx); read!(io[2],a.xy); read!(io[3],a.xz); read!(io[4],a.yy); read!(io[5],a.yz))
 Base.write(io::NTuple{5,A},a::SymTrTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xx); write(io[2],a.xy); write(io[3],a.xz); write(io[4],a.yy); write(io[5],a.yz))
+
+
+abstract type AbstractAntiSymTenArray{T,N} <: AbstractArray{AntiSymTen{T},N} end
+
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractAntiSymTenArray{T,N},i::Int) where {T,N}
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yz = yzvec(v)
+    xyv = xy[i]
+    xzv = xz[i]
+    yzv = yz[i]
+    return AntiSymTen{T}(xyv,xzv,yzv)
+end
+    
+@inline Base.@propagate_inbounds function Base.getindex(v::AbstractAntiSymTenArray{T,N},I::Vararg{Int,N}) where {T,N}
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yz = yzvec(v)
+    xyv = xy[I...]
+    xzv = xz[I...]
+    yzv = yz[I...]
+    return AntiSymTen{T}(xyv,xzv,yzv)
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractAntiSymTenArray,ten,i::Int)
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yz = yzvec(v)
+    setindex!(xy,ten.xy,i)
+    setindex!(xz,ten.xz,i)
+    setindex!(yz,ten.yz,i)
+    return v
+end
+    
+@inline Base.@propagate_inbounds function Base.setindex!(v::AbstractAntiSymTenArray{T,N},vec,I::Vararg{Int,N}) where {T,N}
+    xy = xyvec(v)
+    xz = xzvec(v)
+    yz = yzvec(v)
+    setindex!(xy,ten.xy,I...)
+    setindex!(xz,ten.xz,I...)
+    setindex!(yz,ten.yz,I...)
+    return v
+end
+
+Base.size(v::AbstractAntiSymTenArray) =
+    size(xxvec(v))
+
+struct AntiSymTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N}} <: AbstractAntiSymTenArray{T,N}
+    xy::A
+    xz::B
+    yz::C
+end
+
+@generated function Base.IndexStyle(::Type{<:AntiSymTenArray{T,N,A,B,C}}) where {T,N,A,B,C} 
+    indexstyle = all(x->(IndexStyle(x)===IndexLinear()),(A,B,C)) ? IndexLinear() : IndexCartesian()
+    return :($indexstyle)
+end
+
+@inline AntiSymTenArray{T}(dims::Vararg{Int,N}) where {T,N} = AntiSymTenArray(zeros(T,dims...),zeros(T,dims...),zeros(T,dims...))
+@inline AntiSymTenArray(dims::Vararg{Int,N}) where {N} = AntiSymTenArray{Float64}(dims...)
+    
+@inline xyvec(v::AntiSymTenArray) =
+    v.xy
+@inline xzvec(v::AntiSymTenArray) =
+    v.xz
+@inline yzvec(v::AntiSymTenArray) =
+    v.yz
+
+Base.similar(a::AntiSymTenArray) = AntiSymTenArray(similar(a.xy),similar(a.xz),similar(a.yz))
+
+Base.read!(io::NTuple{3,A},a::AntiSymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (read!(io[1],a.xy); read!(io[2],a.xz); read!(io[3],a.yz))
+Base.write(io::NTuple{3,A},a::AntiSymTenArray) where{A<:Union{<:IO,<:AbstractString}} = (write(io[1],a.xy); write(io[2],a.xz); write(io[3],a.yz))
