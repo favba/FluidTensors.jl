@@ -241,7 +241,7 @@ end
 end
 
 Base.size(v::AbstractAntiSymTenArray) =
-    size(xxvec(v))
+    size(xyvec(v))
 
 struct AntiSymTenArray{T,N,A<:AbstractArray{T,N},B<:AbstractArray{T,N},C<:AbstractArray{T,N}} <: AbstractAntiSymTenArray{T,N}
     xy::A
