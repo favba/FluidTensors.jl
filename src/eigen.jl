@@ -7,29 +7,27 @@
     e23 = t.yz
     e33 = t.zz
 
-    #=@fastmath=# begin
-        p1 = muladd(e12, e12, muladd(e13, e13, e23*e23))
-        q = (e11 + e22 + e33)/3
-        p2 = (e11-q)^2 + (e22-q)^2 + (e33-q)^2 + 2*p1
-        p = @fastmath sqrt(p2/6)
-        r = ((e11-q)*(e22-q)*(e33-q) - (e11-q)*(e23^2) - (e12^2)*(e33-q) + 2*(e12*e13*e23) - (e13^2)*(e22-q))/(2*p*p*p)
+    p1 = muladd(e12, e12, muladd(e13, e13, e23*e23))
+    q = (e11 + e22 + e33)/3
+    p2 = (e11-q)^2 + (e22-q)^2 + (e33-q)^2 + 2*p1
+    p = @fastmath sqrt(p2/6)
+    r = ((e11-q)*(e22-q)*(e33-q) - (e11-q)*(e23^2) - (e12^2)*(e33-q) + 2*(e12*e13*e23) - (e13^2)*(e22-q))/(2*p*p*p)
   
-        # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
-        # but computation error can leave it slightly outside this range.
+    # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
+    # but computation error can leave it slightly outside this range.
 
-        @fastmath if r <= -1
-            ϕ =  T(π/3)
-        elseif r >= 1
-            ϕ = zero(T)
-        else
-            ϕ = acos(r)/3
-        end
-  
-          # the eigenvalues satisfy eig.z >= eig.y >= eig.x
-        eig3 = q + 2*p*cos(ϕ)
-        eig1 = q + 2*p*cos(ϕ+(2*π/3))
-        eig2 = 3*q - eig1 - eig3     # since trace(E) = eig.x + eig.y + eig.z = 3q
+    @fastmath if r <= -1
+        ϕ =  T(π/3)
+    elseif r >= 1
+        ϕ = zero(T)
+    else
+        ϕ = acos(r)/3
     end
+  
+    # the eigenvalues satisfy eig.z >= eig.y >= eig.x
+    eig3 = q + 2*p*cos(ϕ)
+    eig1 = q + 2*p*cos(ϕ+(2*π/3))
+    eig2 = 3*q - eig1 - eig3     # since trace(E) = eig.x + eig.y + eig.z = 3q
 
     return (eig1,eig2,eig3)
 end
@@ -42,47 +40,51 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
     S23 = t.yz
     S33 = t.zz
 
-    #=@fastmath=# begin
-        p1 = muladd(S12, S12, muladd(S13, S13, S23*S23))
+    p1 = muladd(S12, S12, muladd(S13, S13, S23*S23))
 
-        if (p1 == 0) # diagonal tensor
-            v1 = Vec{T}(1,0,0)
-            v2 = Vec{T}(0,1,0)
-            v3 = Vec{T}(0,0,1)
-            if S11 < S22
-                if S22 < S33
-                    return (S11, S22, S33), (v1, v2, v3)
-                elseif S33 < S11
-                    return (S33, S11, S22), (v3, v1, v2)
-                else
-                    return (S11, S33, S22), (v1, v3, v2)
-                end
-            else #S22 < S11
-                if S11 < S33
-                    return (S22, S11, S33), (v2, v1, v3)
-                elseif S33 < S22
-                    return (S33, S22, S11), (v3, v2, v1)
-                else
-                    return (S22, S33, S11), (v2, v3, v1)
-                end
+    if (p1 == 0) # diagonal tensor
+        v1 = Vec{T}(1,0,0)
+        v2 = Vec{T}(0,1,0)
+        v3 = Vec{T}(0,0,1)
+        if S11 < S22
+            if S22 < S33
+                return (S11, S22, S33), (v1, v2, v3)
+            elseif S33 < S11
+                return (S33, S11, S22), (v3, v1, v2)
+            else
+                return (S11, S33, S22), (v1, v3, v2)
+            end
+        else #S22 < S11
+            if S11 < S33
+                return (S22, S11, S33), (v2, v1, v3)
+            elseif S33 < S22
+                return (S33, S22, S11), (v3, v2, v1)
+            else
+                return (S22, S33, S11), (v2, v3, v1)
             end
         end
-
-        q = (S11 + S22 + S33)/3
-        p2 = (S11-q)^2 + (S22-q)^2 + (S33-q)^2 + 2*p1
-        p = @fastmath sqrt(p2/6)
-        r = ((S11-q)*(S22-q)*(S33-q) - (S11-q)*(S23^2) - (S12^2)*(S33-q) + 2*(S12*S13*S23) - (S13^2)*(S22-q))/(2*p*p*p)
-  
-        # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
-        # but computation error can leave it slightly outside this range.
-
-        @fastmath ϕ =  ifelse(r <= -1, T(π/3), ifelse(r >= 1, zero(T), acos(r)/3))
-  
-          # the eigenvalues satisfy eig.z >= eig.y >= eig.x
-        λ3 = q + 2*p*cos(ϕ)
-        λ1 = q + 2*p*cos(ϕ+(2*π/3))
-        λ2 = 3*q - λ1 - λ3     # since trace(E) = eig.x + eig.y + eig.z = 3q
     end
+
+    q = (S11 + S22 + S33)/3
+    p2 = (S11-q)^2 + (S22-q)^2 + (S33-q)^2 + 2*p1
+    p = @fastmath sqrt(p2/6)
+    r = ((S11-q)*(S22-q)*(S33-q) - (S11-q)*(S23^2) - (S12^2)*(S33-q) + 2*(S12*S13*S23) - (S13^2)*(S22-q))/(2*p*p*p)
+  
+    # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
+    # but computation error can leave it slightly outside this range.
+
+    @fastmath if r <= -1
+        ϕ =  T(π/3)
+    elseif r >= 1
+        ϕ = zero(T)
+    else
+        ϕ = acos(r)/3
+    end  
+
+    # the eigenvalues satisfy eig.z >= eig.y >= eig.x
+    λ3 = q + 2*p*cos(ϕ)
+    λ1 = q + 2*p*cos(ϕ+(2*π/3))
+    λ2 = 3*q - λ1 - λ3     # since trace(E) = eig.x + eig.y + eig.z = 3q
 
 
     ######################### This part was copied from https://github.com/KristofferC/Tensors.jl/blob/master/src/eigen.jl #################################
@@ -123,7 +125,7 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
         end
     end
 
-   # Calculate the second eigenvector
+    # Calculate the second eigenvector
     # This should be orthogonal to the previous eigenvector and the three
     # rows of A - λ2*I. However, we need to "solve" the remaining 2x2 subspace
     # problem in case the cross products are identically or nearly zero
@@ -189,7 +191,7 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
     ###############################################################################################################################333
     if r > 0
         (λ1, λ3) = (λ3, λ1)
-        (ϕ1, ϕ3) = (ϕ3, ϕ1)
+        (ϕ1, ϕ3) = (-ϕ3, ϕ1) # - sign so e3 = cross(e1,e2) is always true
     end
 
     return (λ1,λ2,λ3),(ϕ1,ϕ2,ϕ3)

@@ -86,3 +86,19 @@ end
         @test I - a ≈ I - Matrix(a)
     end
 end
+
+@testset "Eigenvalues and vectors of SymTen" begin
+    for a in (SymTen(rand(6)...), SymTen(rand(6)...), SymTen(rand(6)...))
+        l,e = eigvec(a)
+        @test all(isapprox.(l, eig(a))) || all(isapprox.((l[3],l[2],l[1]), eig(a)))
+        b = eigen(Matrix(a))
+        lv = b.values
+        ev = b.vectors
+        @test all(isapprox.(l, lv))
+        @test (e[1] ≈ ev[:,1] || -e[1] ≈ ev[:,1])
+        @test (e[2] ≈ ev[:,2] || -e[2] ≈ ev[:,2])
+        @test (e[3] ≈ ev[:,3] || -e[3] ≈ ev[:,3])
+
+        @test cross(e[1],e[2]) ≈ e[3]
+    end
+end
