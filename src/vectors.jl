@@ -14,16 +14,16 @@ Base.IndexStyle(a::Type{<:AbstractVec}) = Base.IndexLinear()
 @inline LinearAlgebra.norm(a::Vec{<:Real}) = @fastmath sqrt(muladd(xpos(a), xpos(a), muladd(ypos(a), ypos(a), zpos(a)^2)))
 @inline LinearAlgebra.norm(a::Vec) = @fastmath sqrt(abs2(a.x)+abs2(a.y)+abs2(a.z))
 
-@inline Base.:+(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)+xpos(b), ypos(a)+ypos(b), zpos(a)+zpos(b))
-@inline Base.:-(a::AbstractVec,b::AbstractVec) = @fastmath Vec(xpos(a)-xpos(b), ypos(a)-ypos(b), zpos(a)-zpos(b))
+@inline Base.:+(a::AbstractVec,b::AbstractVec) = Vec(xpos(a)+xpos(b), ypos(a)+ypos(b), zpos(a)+zpos(b))
+@inline Base.:-(a::AbstractVec,b::AbstractVec) = Vec(xpos(a)-xpos(b), ypos(a)-ypos(b), zpos(a)-zpos(b))
 @inline Base.:-(a::AbstractVec) = Vec(-xpos(a),-ypos(a),-zpos(a))
-@inline Base.:*(a::Number,b::AbstractVec) = @fastmath Vec(a*xpos(b), a*ypos(b), a*zpos(b))
-@inline Base.:*(b::AbstractVec,a::Number) = @fastmath Vec(a*xpos(b), a*ypos(b), a*zpos(b))
-@inline Base.:/(b::AbstractVec,a::Number) = @fastmath inv(a)*b
+@inline Base.:*(a::Number,b::AbstractVec) = Vec(a*xpos(b), a*ypos(b), a*zpos(b))
+@inline Base.:*(b::AbstractVec,a::Number) = Vec(a*xpos(b), a*ypos(b), a*zpos(b))
+@inline Base.:/(b::AbstractVec,a::Number) = inv(a)*b
 
-@inline LinearAlgebra.dot(a::AbstractVec,b::AbstractVec) = @fastmath muladd(xpos(a), xpos(b), muladd(ypos(a), ypos(b), zpos(a)*zpos(b)))
+@inline LinearAlgebra.dot(a::AbstractVec,b::AbstractVec) = muladd(xpos(a), xpos(b), muladd(ypos(a), ypos(b), zpos(a)*zpos(b)))
 
-@inline LinearAlgebra.cross(a::AbstractVec,b::AbstractVec) = @fastmath Vec(ypos(a)*zpos(b) - zpos(a)*ypos(b), zpos(a)*xpos(b) - xpos(a)*zpos(b), xpos(a)*ypos(b) - ypos(a)*xpos(b))
+@inline LinearAlgebra.cross(a::AbstractVec,b::AbstractVec) = Vec(ypos(a)*zpos(b) - zpos(a)*ypos(b), zpos(a)*xpos(b) - xpos(a)*zpos(b), xpos(a)*ypos(b) - ypos(a)*xpos(b))
 
 @inline anglecos(a::Vec,b::Vec) = LinearAlgebra.dot(a,b)/(LinearAlgebra.norm(a)*LinearAlgebra.norm(b))
 

@@ -16,7 +16,7 @@
     # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
     # but computation error can leave it slightly outside this range.
 
-    @fastmath if r <= -1
+    if r <= -1
         ϕ =  T(π/3)
     elseif r >= 1
         ϕ = zero(T)
@@ -73,7 +73,7 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
     # In exact arithmetic for a symmetric matrix  -1 <= r <= 1
     # but computation error can leave it slightly outside this range.
 
-    @fastmath if r <= -1
+    if r <= -1
         ϕ =  T(π/3)
     elseif r >= 1
         ϕ = zero(T)
