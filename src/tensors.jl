@@ -71,6 +71,10 @@ end
 @inline LinearAlgebra.norm(a::SymTen) = 
     @fastmath sqrt(2(a:a))
 
+@inline LinearAlgebra.det(t::SymTen) =
+    #-txx*tyz^2 - txz^2*tyy - tzz*txy^2 + 2*txz*txy*tyz + tzz*txx*tyy
+    @fastmath t.xx*t.yy*t.zz + 2*t.xz*t.xy*t.yz - (t.xx*t.yz*t.yz + t.yy*t.xz*t.xz + t.zz*t.xy*t.xy)
+
 @inline LinearAlgebra.dot(a::SymTen{T},b::Vec{T2}) where {T<:Number,T2<:Number} = 
     Vec{promote_type(T,T2)}(muladd(a.xx, b.x, muladd(a.xy, b.y, a.xz*b.z)), 
         muladd(a.xy, b.x, muladd(a.yy, b.y, a.yz*b.z)),
@@ -195,6 +199,9 @@ end
 
 @inline LinearAlgebra.norm(a::Ten) = 
     @fastmath sqrt(2(a:a))
+
+@inline LinearAlgebra.det(t::Ten) = 
+    @fastmath (t.xy*t.yz - t.xz*t.yy)*t.zx + (t.zy*t.xz - t.zz*t.xy)*t.yx + (t.zz*t.yy - t.zy*t.yz )*t.xx
 
 @inline LinearAlgebra.dot(a::Ten{T},b::Ten{T2}) where {T<:Number,T2<:Number} = 
     Ten{promote_type(T,T2)}(muladd(a.xx, b.xx, muladd(a.xy, b.yx, a.xz*b.zx)), muladd(a.yx, b.xx, muladd(a.yy, b.yx, a.yz*b.zx)), muladd(a.zx, b.xx, muladd(a.zy, b.yx, a.zz*b.zx)),
@@ -322,6 +329,8 @@ end
 
 @inline LinearAlgebra.norm(a::AntiSymTen) = 
     @fastmath sqrt(2(a:a))
+
+@inline LinearAlgebra.det(a::AntiSymTen) = false
 
 @inline LinearAlgebra.dot(a::AntiSymTen{T},b::AntiSymTen{T2}) where {T<:Number,T2<:Number} = 
     Ten{promote_type(T,T2)}(-muladd(a.xy, b.xy, a.xz*b.xz), -a.yz*b.xz, a.yz*b.xy,

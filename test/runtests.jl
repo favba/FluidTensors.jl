@@ -84,6 +84,10 @@ end
         @test a - I ≈ Matrix(a) - I
         @test I + a ≈ I + Matrix(a)
         @test I - a ≈ I - Matrix(a)
+
+        for op in (+,-,tr,det)
+            @test op(a) ≈ op(Matrix(a))
+        end
     end
 end
 
