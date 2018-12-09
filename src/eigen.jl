@@ -26,6 +26,32 @@
   
     # the eigenvalues satisfy eig.z >= eig.y >= eig.x
     eig3 = q + 2*p*cos(ϕ)
+    # cos(x+y) = cos(x)*cos(y) - sin(x)*sin(y)
+    eig1 = q + 2*p*cos(ϕ+(2*π/3))  # q - 2*p*(cos(ϕ)/2 + (√3/2)sin(ϕ))
+    eig2 = 3*q - eig1 - eig3     # since trace(E) = eig.x + eig.y + eig.z = 3q
+
+    return (eig1,eig2,eig3)
+end
+
+@inline function eig(t::SymTen)
+
+    e11 = t.xx
+    e12 = t.xy
+    e13 = t.xz
+    e22 = t.yy
+    e23 = t.yz
+    e33 = t.zz
+
+    p1 = muladd(e12, e12, muladd(e13, e13, e23*e23))
+    q = (e11 + e22 + e33)/3
+    p2 = (e11-q)^2 + (e22-q)^2 + (e33-q)^2 + 2*p1
+    p = sqrt(p2/6)
+    r = ((e11-q)*(e22-q)*(e33-q) - (e11-q)*(e23^2) - (e12^2)*(e33-q) + 2*(e12*e13*e23) - (e13^2)*(e22-q))/(2*p*p*p)
+  
+    ϕ = acos(r)/3
+  
+    # the eigenvalues satisfy eig.z >= eig.y >= eig.x
+    eig3 = q + 2*p*cos(ϕ)
     eig1 = q + 2*p*cos(ϕ+(2*π/3))
     eig2 = 3*q - eig1 - eig3     # since trace(E) = eig.x + eig.y + eig.z = 3q
 
