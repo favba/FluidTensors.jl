@@ -4,7 +4,7 @@ import LinearAlgebra
 using LinearAlgebra
 
 export Vec, SymTen, symouter, Lie, traceless, AbstractVecArray, VecArray, AbstractSymTenArray, AbstractSymTrTenArray, SymTenArray, SymTrTenArray, AbstractAntiSymTenArray, AntiSymTenArray, HomogeneousArray, eig, eigvec, anglecos, stress_state
-export prop_decomp, inph_decomp, Ten, outer, ⊗, AntiSymTen
+export prop_decomp, inph_decomp, Ten, outer, ⊗, AntiSymTen, square
 
 abstract type AbstractVec{T} <: AbstractArray{T,1} end
 abstract type AbstractTen{T} <: AbstractArray{T,2} end

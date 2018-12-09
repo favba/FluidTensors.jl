@@ -88,6 +88,7 @@ end
         for op in (+,-,tr,det)
             @test op(a) ≈ op(Matrix(a)) atol=2e-15
         end
+        @test square(a) ≈ Matrix(a)^2
     end
 end
 

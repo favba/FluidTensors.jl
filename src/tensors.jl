@@ -109,13 +109,16 @@ end
     r = (λ[1]^n)*(symouter(e[1],e[1])) + (λ[2]^n)*(symouter(e[2],e[2])) + (λ[3]^n)*(symouter(e[3],e[3]))
 end
 
-@inline function Base.literal_pow(::typeof(Base.:^),t::SymTen{T},::Val{2}) where {T<:AbstractFloat}
-    SymTen{T}(muladd(t.xx,t.xx,muladd(t.xy,t.xy,t.xz^2)),
+@inline square(t::SymTen) = 
+    SymTen(muladd(t.xx,t.xx,muladd(t.xy,t.xy,t.xz^2)),
               muladd(t.xx,t.xy,muladd(t.yy,t.xy,t.xz*t.yz)),
               muladd(t.xx,t.xz,muladd(t.xy,t.yz,t.zz*t.xz)),
               muladd(t.xy,t.xy,muladd(t.yy,t.yy,t.yz^2)),
               muladd(t.xy,t.xz,muladd(t.yy,t.yz,t.zz*t.yz)),
               muladd(t.xz,t.xz,muladd(t.yz,t.yz,t.zz^2)))
+
+@inline function Base.literal_pow(::typeof(Base.:^),t::SymTen{T},::Val{2}) where {T<:AbstractFloat}
+    return square(t)
 end
 
 @inline Base.adjoint(a::SymTen{T}) where T<:Complex = SymTen{T}(adjoint(a.xx),adjoint(a.xy),adjoint(a.xz),adjoint(a.yy),adjoint(a.yz),adjoint(a.zz))
@@ -241,6 +244,8 @@ function Base.:^(t::Ten{T},n::Integer) where {T}
     return t⋅(t^(n-1))
 end
 
+@inline square(t::Ten) = t⋅t
+
 @inline function Base.literal_pow(::typeof(Base.:^),t::Ten{T},::Val{2}) where {T<:AbstractFloat}
     return t⋅t
 end
@@ -350,8 +355,10 @@ end
 
 Base.:^(t::AntiSymTen{T},n::Integer) where {T} = Ten(t)^n
 
+@inline square(a::AntiSymTen) = SymTen(-muladd(a.xy,a.xy,a.xz^2), -a.xz*a.yz, a.xy*a.yz, -muladd(a.xy,a.xy,a.yz^2), -a.xy*a.xz, -muladd(a.xz,a.xz,a.yz^2))
+
 @inline function Base.literal_pow(::typeof(Base.:^),a::AntiSymTen{T},::Val{2}) where {T<:AbstractFloat}
-    return SymTen{T}(-muladd(a.xy,a.xy,a.xz^2), -a.xz*a.yz, a.xz*a.yz, -muladd(a.xy,a.xy,a.yz^2), -a.xy*a.xz, -muladd(a.xz,a.xz,a.yz^2))
+    return square(a)
 end
 
 @inline SymTen(a::AntiSymTen{T}) where {T} = zero(SymTen{T})
