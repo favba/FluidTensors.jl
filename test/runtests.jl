@@ -86,7 +86,7 @@ end
         @test I - a ≈ I - Matrix(a)
 
         for op in (+,-,tr,det)
-            @test op(a) ≈ op(Matrix(a))
+            @test op(a) ≈ op(Matrix(a)) atol=2e-15
         end
     end
 end
