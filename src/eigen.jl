@@ -223,5 +223,11 @@ function eigvec(t::SymTen{T}) where {T<:AbstractFloat}
     return (λ1,λ2,λ3),(ϕ1,ϕ2,ϕ3)
 end
 
-@inline stress_state(a::Number,b::Number,c::Number) = (-3*sqrt(6)*a*b*c)/((a^2+b^2+c^2)^1.5)
-@inline stress_state(t::SymTen) = stress_state(eig(t)...)
+@inline stress_state(a::Number,b::Number,c::Number) = begin 
+    abc2 = muladd(a,a,muladd(b,b,c^2))
+    return (-3*sqrt(6)*a*b*c)/(abc2*@fastmath(sqrt(abc2)))
+end
+@inline stress_state(t::SymTen) = begin 
+    abc2 = tr(square(t))
+    return (-3*sqrt(6)*det(t))/(abc2*@fastmath(sqrt(abc2)))
+end
