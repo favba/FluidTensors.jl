@@ -34,6 +34,8 @@ end
 @inline SymTen(q,w,e,r,t,y) = 
     SymTen(promote(q,w,e,r,t,y)...)
 
+@inline SymTen(s::SymTen) = SymTen(s.xx,s.xy,s.xz,s.yy,s.yz,s.zz)
+
 @inline Base.:+(a::SymTen{T},b::SymTen{T2}) where {T,T2} = 
     SymTen{promote_type(T,T2)}(a.xx+b.xx, a.xy+b.xy, a.xz+b.xz, a.yy+b.yy, a.yz + b.yz, a.zz+b.zz)
 
@@ -73,7 +75,7 @@ end
 
 @inline LinearAlgebra.det(t::SymTen) =
     #-txx*tyz^2 - txz^2*tyy - tzz*txy^2 + 2*txz*txy*tyz + tzz*txx*tyy
-    @fastmath t.xx*t.yy*t.zz + 2*t.xz*t.xy*t.yz - (t.xx*t.yz*t.yz + t.yy*t.xz*t.xz + t.zz*t.xy*t.xy)
+    t.xx*t.yy*t.zz + 2*t.xz*t.xy*t.yz - (t.xx*t.yz*t.yz + t.yy*t.xz*t.xz + t.zz*t.xy*t.xy)
 
 @inline LinearAlgebra.dot(a::SymTen{T},b::Vec{T2}) where {T<:Number,T2<:Number} = 
     Vec{promote_type(T,T2)}(muladd(a.xx, b.x, muladd(a.xy, b.y, a.xz*b.z)), 
@@ -92,14 +94,6 @@ end
                      a.y*b.y,
                      0.5*muladd(a.y,b.z,a.z*b.y),
                      a.z*b.z)
-
-@inline Lie(S::SymTen,w::Vec) = #Lie product of Symmetric Tensor and Anti-symmetric tensor(passed as vector)
-    SymTen(2*(S.xz*w.y - S.xy*w.z),
-                     muladd(w.y,S.yz, muladd(w.z,S.xx, -muladd(w.x,S.xz, w.z*S.yy))),
-                     muladd(w.x,S.xy, muladd(w.y,S.zz, -muladd(w.y, S.xx, w.z*S.yz))),
-                     2*(w.z*S.xy - w.x*S.yz),
-                     muladd(w.x,S.yy, muladd(w.z,S.xz, -muladd(w.x,S.zz, w.y*S.xy))),
-                     2*(w.x*S.yz - w.y*S.xz))
 
 @inline traceless(S::SymTen) =
     S - inv(3)*tr(S)*I
@@ -204,7 +198,7 @@ end
     @fastmath sqrt(2(a:a))
 
 @inline LinearAlgebra.det(t::Ten) = 
-    @fastmath (t.xy*t.yz - t.xz*t.yy)*t.zx + (t.zy*t.xz - t.zz*t.xy)*t.yx + (t.zz*t.yy - t.zy*t.yz )*t.xx
+    (t.xy*t.yz - t.xz*t.yy)*t.zx + (t.zy*t.xz - t.zz*t.xy)*t.yx + (t.zz*t.yy - t.zy*t.yz )*t.xx
 
 @inline LinearAlgebra.dot(a::Ten{T},b::Ten{T2}) where {T<:Number,T2<:Number} = 
     Ten{promote_type(T,T2)}(muladd(a.xx, b.xx, muladd(a.xy, b.yx, a.xz*b.zx)), muladd(a.yx, b.xx, muladd(a.yy, b.yx, a.yz*b.zx)), muladd(a.zx, b.xx, muladd(a.zy, b.yx, a.zz*b.zx)),
@@ -250,7 +244,13 @@ end
     return t⋅t
 end
 
-@inline SymTen(t::Ten) = SymTen(t.xx, (t.xy + t.yx)/2, (t.xz + t.zx)/2, t.yy, (t.zy + t.yz)/2, t.zz)
+@inline function SymTen(t::Ten)
+    if (t.yx == t.xy && t.zx == t.xz && t.zy == t.yz) 
+       return SymTen(t.xx, t.yx, t.zx, t.yy, t.zy, t.zz)
+    else
+        throw(InexactError(:SymTen,SymTen,t))
+    end
+end
 @inline Ten(a::SymTen) = Ten(a.xx,a.xy,a.xz,a.xy,a.yy,a.yz,a.xz,a.yz,a.zz)
 
 ####### AntiSym Tensors
@@ -260,6 +260,8 @@ struct AntiSymTen{T<:Number} <: AbstractTen{T}
     xz::T
     yz::T 
 end
+
+@inline Ten(a::AntiSymTen) = Ten(0,-a.xy,-a.xz,a.xy,0,-a.yz,a.xz,a.yz,0)
 
 
 Base.IndexStyle(a::Type{<:AntiSymTen}) = Base.IndexLinear()
@@ -368,8 +370,16 @@ end
 @inline Vec(a::AntiSymTen) = Vec(-a.yz,a.xz,-a.xy)
 @inline AntiSymTen(a::Vec) = AntiSymTen(-a.z,a.y,-a.x)
 
-@inline Lie(a::SymTen,b::AntiSymTen) = Lie(a,-Vec(b))
+@inline Lie(s::SymTen,w::AntiSymTen) = 
+    SymTen(-2*(w.xy*s.xy + w.xz*s.xz),
+           w.xy*s.xx - w.yz*s.xz - w.xy*s.yy - w.xz*s.yz,
+           w.xz*s.xx + w.yz*s.xy - w.xy*s.yz - w.xz*s.zz,
+           2*(w.xy*s.xy - w.yz*s.yz),
+           w.xy*s.xz + w.xz*s.xy + w.yz*s.yy - w.yz*s.zz,
+           2*(w.xz*s.xz + w.yz*s.yz))
 
+@inline Lie(w::AntiSymTen,s::SymTen) = Lie(s,-w)
+@inline Lie(t::AbstractTen,l::AbstractTen) = t⋅l - l⋅t
 
 ############################## Interoperation
 
@@ -436,5 +446,12 @@ end
                                       muladd(a.yy,b.xy,a.yz*b.xz), -a.xy*b.xy+a.yz*b.yz, -muladd(a.xy,b.xz,a.yy*b.yz),
                                       muladd(a.yz,b.xy,a.zz*b.xz), -a.xz*b.xy+a.zz*b.yz, -muladd(a.xz,b.xz,a.yz*b.yz))
 
+@inline symmetric(t::SymTen) = t
+@inline symmetric(t::AntiSymTen{T}) where {T} = zero(SymTen{T})
+@inline symmetric(t::Ten) = SymTen(t.xx, (t.yx+t.xy)/2, (t.xz+t.zx)/2, t.yy, (t.zy+t.yz)/2, t.zz)
+
+@inline antisymmetric(t::SymTen{T}) where {T} = zero(AntiSymTen{T})
+@inline antisymmetric(t::AntiSymTen) = t
+@inline antisymmetric(t::Ten) = AntiSymTen((t.xy-t.yx)/2, (t.xz-t.zx)/2, (t.yz-t.zy)/2)
 
 include("tensorarrays.jl")

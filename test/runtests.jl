@@ -41,10 +41,6 @@ end
     b = Vec(4.,5.,6.)
     A = SymTen(1.,2.,3.,4.,5.,6.)
     @test A⋅a === Vec(14.,25.,31.)
-    W = [0. a.z -a.y;
-         -a.z 0. a.x;
-         a.y -a.x 0.]
-    @test Lie(A,a) ==  A*W - W*A
     @test symouter(a,b) === SymTen(4.,6.5,9.,10.,13.5,18.)
     @test outer(a,b) === Ten(4.,8.,12.,5.,10.,15.,6.,12.,18.)
 end
@@ -76,6 +72,7 @@ end
             end
             @test a⋅b ≈ a*b
             @test a:b ≈ tr(Matrix(a)'*Matrix(b)) atol=2e-15
+            @test Lie(a,b) ≈ (Matrix(a)*Matrix(b) - Matrix(b)*Matrix(a)) atol=2e-15
         end
         @test a⋅v ≈ Matrix(a)*Vector(v)
         @test v⋅a ≈ Matrix(a)'*Vector(v)
@@ -88,7 +85,12 @@ end
         for op in (+,-,tr,det)
             @test op(a) ≈ op(Matrix(a)) atol=2e-15
         end
+
         @test square(a) ≈ Matrix(a)^2
+
+        @test symmetric(a) ≈ (Matrix(a) + Matrix(a)')/2 atol=2e-15
+        @test antisymmetric(a) ≈ (Matrix(a) - Matrix(a)')/2 atol=2e-15
+
     end
 end
 
