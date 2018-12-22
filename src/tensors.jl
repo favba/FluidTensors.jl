@@ -363,10 +363,7 @@ Base.:^(t::AntiSymTen{T},n::Integer) where {T} = Ten(t)^n
     return square(a)
 end
 
-@inline SymTen(a::AntiSymTen{T}) where {T} = zero(SymTen{T})
-@inline AntiSymTen(a::SymTen{T}) where {T} = zero(AntiSymTen{T})
 @inline Ten(a::AntiSymTen{T}) where {T} = Ten{T}(zero(T),-a.xy,-a.xz,a.xy,zero(T),-a.yz,a.xz,a.yz,zero(T))
-@inline AntiSymTen(t::Ten) = AntiSymTen((t.xy - t.yx)/2, (t.xz - t.zx)/2, (t.yz - t.zy)/2)
 @inline Vec(a::AntiSymTen) = Vec(-a.yz,a.xz,-a.xy)
 @inline AntiSymTen(a::Vec) = AntiSymTen(-a.z,a.y,-a.x)
 
