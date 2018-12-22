@@ -115,7 +115,7 @@ end
     return square(t)
 end
 
-@inline Base.adjoint(a::SymTen{T}) where T<:Complex = SymTen{T}(adjoint(a.xx),adjoint(a.xy),adjoint(a.xz),adjoint(a.yy),adjoint(a.yz),adjoint(a.zz))
+@inline Base.adjoint(a::SymTen{T}) where T<:Complex = SymTen{T}(conj(a.xx),conj(a.xy),conj(a.xz),conj(a.yy),conj(a.yz),conj(a.zz))
 @inline Base.adjoint(a::SymTen) = a
 
 ####### Full Tensors
@@ -220,7 +220,7 @@ end
     muladd(a.xx, b.xy, muladd(a.xy, b.yy, a.xz*b.yz)), muladd(a.xy, b.xy, muladd(a.yy, b.yy, a.yz*b.yz)), muladd(a.xz, b.xy, muladd(a.yz, b.yy, a.zz*b.yz)),
     muladd(a.xx, b.xz, muladd(a.xy, b.yz, a.xz*b.zz)), muladd(a.xy, b.xz, muladd(a.yy, b.yz, a.yz*b.zz)), muladd(a.xz, b.xz, muladd(a.yz, b.yz, a.zz*b.zz)))
 
-@inline Base.adjoint(a::Ten{T}) where T = Ten{T}(adjoint(a.xx),adjoint(a.xy),adjoint(a.xz),adjoint(a.yx),adjoint(a.yy),adjoint(a.yz),adjoint(a.zx),adjoint(a.zy),adjoint(a.zz))
+@inline Base.adjoint(a::Ten{T}) where T = Ten{T}(conj(a.xx),conj(a.xy),conj(a.xz),conj(a.yx),conj(a.yy),conj(a.yz),conj(a.zx),conj(a.zy),conj(a.zz))
 
 @inline outer(a::Vec,b::Vec) = #symmetric part of the outer product of two vectors
     Ten(a.x*b.x, a.y*b.x, a.z*b.x,
@@ -351,7 +351,7 @@ end
 
 @inline LinearAlgebra.dot(b::Vec,a::AntiSymTen) = -a⋅b
 
-@inline Base.adjoint(a::AntiSymTen{T}) where T = AntiSymTen{T}(adjoint(-a.xy),adjoint(-a.xz),adjoint(-a.yz))
+@inline Base.adjoint(a::AntiSymTen{T}) where T = AntiSymTen{T}(conj(-a.xy),conj(-a.xz),conj(-a.yz))
 
 @inline traceless(S::AntiSymTen) = S
 
