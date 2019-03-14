@@ -13,5 +13,5 @@ Base.IndexStyle(::Type{<:HomogeneousArray}) = IndexCartesian()
 @inline Base.@propagate_inbounds function Base.getindex(v::HomogeneousArray{T,N,A,P},I::Vararg{Int,N}) where {T,N,A,P}
     d = v.data
     i = @inbounds I[P]
-    return d[I[P]]
+    return d[i]
 end
