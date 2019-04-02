@@ -42,6 +42,7 @@ end
     A = SymTen(1.,2.,3.,4.,5.,6.)
     @test A⋅a === Vec(14.,25.,31.)
     @test symouter(a,b) === SymTen(4.,6.5,9.,10.,13.5,18.)
+    @test antisymouter(a,b) === AntiSymTen(-1.5,-3.0,-1.5)
     @test outer(a,b) === Ten(4.,8.,12.,5.,10.,15.,6.,12.,18.)
 end
 

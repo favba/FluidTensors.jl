@@ -89,11 +89,16 @@ end
 
 @inline symouter(a::Vec,b::Vec) = #symmetric part of the outer product of two vectors
     SymTen(a.x*b.x,
-                     0.5*muladd(a.x,b.y,a.y*b.x),
-                     0.5*muladd(a.x,b.z,a.z*b.x),
-                     a.y*b.y,
-                     0.5*muladd(a.y,b.z,a.z*b.y),
-                     a.z*b.z)
+           muladd(a.x,b.y,a.y*b.x)/2,
+           muladd(a.x,b.z,a.z*b.x)/2,
+           a.y*b.y,
+           muladd(a.y,b.z,a.z*b.y)/2,
+           a.z*b.z)
+
+@inline antisymouter(a::Vec,b::Vec) =
+    AntiSymTen((a.x*b.y - a.y*b.x)/2,
+               (a.x*b.z - a.z*b.x)/2,
+               (a.y*b.z - a.z*b.y)/2)
 
 @inline traceless(S::SymTen) =
     S - inv(3)*tr(S)*I
